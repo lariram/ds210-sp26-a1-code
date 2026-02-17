@@ -17,7 +17,13 @@ impl PlayerTrait for SimulatedPlayer {
      * The function should return false otherwise.
      */
     fn ask_if_equal(&mut self, guess: u32) -> bool {
-        todo!("you did not provide your part 3 solution yet!")
+        let ask_is_equal = self.the_number == guess;
+        if ask_is_equal {
+            return true
+        }
+        else {
+            return false
+        }
     }
     /**
      * This function compares the guess to the number that the player has in mind.
@@ -27,7 +33,15 @@ impl PlayerTrait for SimulatedPlayer {
      * 1 if the number > guess
      */
     fn ask_to_compare(&mut self, guess: u32) -> i32 {
-        todo!("you did not provide your part 3 solution yet!")
+        if self.the_number > guess {
+            1
+        }
+        else if self.the_number < guess {
+            -1
+        }
+        else {
+            0
+        }
     }
 }
 
@@ -117,8 +131,7 @@ mod bad_strategy_tests {
     fn a_different_number() {
         let min = 0;
         let max = 100;
-        let number = todo!("`the_min` and `the_max` are not enough: the `BadStrategy` satisfies them, even though it is wrong. Add your own test that demonstrate that BadStrategy does not work!");
-
+        let number = 27;
         // We create a simulated player
         let mut player = Player::new(SimulatedPlayer::new(number));
         let answer = BadStrategy::guess_the_number(&mut player, min, max);
