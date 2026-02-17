@@ -12,7 +12,7 @@ impl Strategy for Part2 {
 
         loop {
 
-            let midpoint = current_min + (current_max - current_min) / 2;
+            let midpoint = current_min + (current_max - current_min) / 2 ;
 
             match player.ask_to_compare(midpoint) {
                 0 => return midpoint ,
