@@ -12,7 +12,7 @@ impl Strategy for Part1 {
                     return guess;
                 }
             }
-            return 0
+            unreachable!()
         }
     }
 }
