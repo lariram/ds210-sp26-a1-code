@@ -78,12 +78,12 @@ fn slow_vec_remove() {
 
 fn main() {
     // This part works as given.
-    slow_vec_basics();
+    // slow_vec_basics();
 
     // This part helps you understand how to use FixedSizeArray
-    fixed_sized_array();
+    // fixed_sized_array();
 
     // These parts do not work unless you implement push and remove correctly.
     slow_vec_push();
-    slow_vec_remove();
+    // slow_vec_remove();
 }
