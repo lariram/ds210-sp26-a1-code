@@ -73,16 +73,18 @@ impl<T> SlowVec<T> {
 
     // Student 2: Provide your solution here
     pub fn remove(&mut self, i: usize) {
-        let mut tmp = FixedSizeArray::allocate(self.len()-1);
-        let mut count = 0;
+        let mut tmp = FixedSizeArray::allocate(self.len()-1); //make a new empty array
+        let mut count = 0; // set the initial count of index
+        //loop over the original array
         for index in 0..self.len() {
+            // comparing with the unwanted index, if it is not the unwanted index:
             if index != i {   
-                let mut z = self.fixed.move_out(index);
-                tmp.put(z ,count);
-                count += 1;
+                let mut z = self.fixed.move_out(index); // move out the value of the index
+                tmp.put(z ,count); // add the value and the index to the new array
+                count += 1; // increase the count by 1
             }
         }
-        self.fixed = tmp;
+        self.fixed = tmp; // change the original array to be copy
     }
 }
 
