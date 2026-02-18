@@ -60,14 +60,14 @@ impl<T> SlowVec<T> {
 
     // Student 1: Provide your solution here.
     pub fn push(&mut self, t: T) {
-        let mut tmp = FixedSizeArray::allocate(self.len() + 1);
+        let mut tmp = FixedSizeArray::allocate(self.len() + 1); // creates a new, empty array tmp with length of the old array + 1
         for i in 0..self.fixed.len() {
-            let n = self.fixed.move_out(i);
-            tmp.put(n, i)
+            let n = self.fixed.move_out(i); // n stores the element at index i in the original self.fixed array
+            tmp.put(n, i) // puts the element n at index i in the new array tmp
         }
-        tmp.put(t, self.len());
+        tmp.put(t, self.len()); // adds the new element at the end of the new array tmp
 
-        self.fixed = tmp;
+        self.fixed = tmp; // replaces the old array with the new array
     }
 
 
