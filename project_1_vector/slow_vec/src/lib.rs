@@ -60,21 +60,31 @@ impl<T> SlowVec<T> {
 
     // Student 1: Provide your solution here.
     pub fn push(&mut self, t: T) {
-        todo!("Student 1 should implement this");
+        let mut tmp = FixedSizeArray::allocate(self.len() + 1); // creates a new, empty array tmp with length of the old array + 1
+        for i in 0..self.fixed.len() {
+            let n = self.fixed.move_out(i); // n stores the element at index i in the original self.fixed array
+            tmp.put(n, i) // puts the element n at index i in the new array tmp
+        }
+        tmp.put(t, self.len()); // adds the new element at the end of the new array tmp
+
+        self.fixed = tmp; // replaces the old array with the new array
     }
+
 
     // Student 2: Provide your solution here
     pub fn remove(&mut self, i: usize) {
-        let mut tmp = FixedSizeArray::allocate(self.len()-1);
-        let mut count = 0;
+        let mut tmp = FixedSizeArray::allocate(self.len()-1); //make a new empty array
+        let mut count = 0; // set the initial count of index
+        //loop over the original array
         for index in 0..self.len() {
+            // comparing with the unwanted index, if it is not the unwanted index:
             if index != i {   
-                let mut z = self.fixed.move_out(index);
-                tmp.put(z ,count);
-                count += 1;
+                let mut z = self.fixed.move_out(index); // move out the value of the index
+                tmp.put(z ,count); // add the value and the index to the new array
+                count += 1; // increase the count by 1
             }
         }
-        self.fixed = tmp;
+        self.fixed = tmp; // change the original array to be copy
     }
 }
 
