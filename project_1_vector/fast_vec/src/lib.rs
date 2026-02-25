@@ -61,14 +61,16 @@ impl<T> FastVec<T> {
     // Student 1 and Student 2 should implement this together
     // Use the project handout as a guide for this part!
     pub fn get(&self, i: usize) -> &T {
+        // telling Rust that I know the codes are not so safe.
         unsafe {
+        //determine if index i is larger than the maximum range of the vector
         if i >= self.len {
-            panic!("FastVec: get out of bounds");
+            panic!("FastVec: get out of bounds"); //show the error message if it does
             } else {
-                
-                let ptr_i= self.ptr_to_data.add(i);
-                let val: &T = &*ptr_i;
-                return val
+                // if it is in the range of the vector
+                let ptr_i= self.ptr_to_data.add(i); // Change the position of the pointer to the index
+                let val: &T = &*ptr_i; //read the index value without changing the original value
+                return val //return the value being read
             }
         }   
     }
@@ -84,7 +86,36 @@ impl<T> FastVec<T> {
 
     // Student 1 should implement this.
     pub fn remove(&mut self, i: usize) {
-        todo!("implement remove");
+         // telling Rust that I know the codes are not so safe.
+        unsafe {
+        //determine if index i is larger than the maximum range of the vector
+        if i >= self.len {
+            panic!("FastVec: remove out of bounds"); //show the error message if it does
+            } else {
+                // if it is in the range of the vector
+                // move the pointer to the index I want to remove.
+                let ptr_i: *mut T = self.ptr_to_data.add(i);
+                //read the value of the index and remove the original value
+                let val: T = ptr::read(self.ptr_to_data);
+                //if the index i is at the maximum end of the vector:
+                if i != self.len -1 {
+                    // loop through the indexes after index i till the end:
+                    for j in (i+1)..self.len {
+                        //move the pointer to the new position after index i at j
+                        let ptr_j: *mut T = self.ptr_to_data.add(j);
+                        // read the value of the index and remove the original value
+                        let val: T = ptr::read(ptr_j);
+                        //move the pointer to the one position ahead of j
+                        let ptr_j_1: *mut T = self.ptr_to_data.add(j-1);
+                        // write down the value for the new position
+                        ptr::write(ptr_j_1, val)
+
+                    }
+                }
+                // reduce the length of the vector by one
+                self.len = self.len -1;
+            }
+        }  
     }
 
     // This appears correct but with further testing, you will notice it has a bug!

@@ -98,5 +98,5 @@ fn main() {
     fast_vec_get();
     //fast_vec_push();
     //fast_vec_push();
-    //fast_vec_remove();
+    fast_vec_remove();
 }
