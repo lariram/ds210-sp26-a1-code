@@ -95,15 +95,8 @@ fn main() {
     malloc_and_ptr();
 
     // These parts do not work unless you implement get, push, and remove correctly.
-<<<<<<< HEAD
     fast_vec_get();
-    //fast_vec_push();
-    //fast_vec_push();
+    fast_vec_push();
+    fast_vec_push();
     fast_vec_remove();
-=======
-    // fast_vec_get();
-    fast_vec_push();
-    fast_vec_push();
-    //fast_vec_remove();
->>>>>>> origin/std2p2
 }
