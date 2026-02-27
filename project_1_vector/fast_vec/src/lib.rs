@@ -112,7 +112,7 @@ impl<T> FastVec<T> {
                 // move the pointer to the index I want to remove.
                 let ptr_i: *mut T = self.ptr_to_data.add(i);
                 //read the value of the index and remove the original value
-                let val: T = ptr::read(self.ptr_to_data);
+                let val: T = ptr::read(ptr_i);
                 //if the index i is at the maximum end of the vector:
                 if i != self.len -1 {
                     // loop through the indexes after index i till the end:
