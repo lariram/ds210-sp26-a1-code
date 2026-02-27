@@ -139,6 +139,13 @@ impl<T> FastVec<T> {
     // Hint: check out case 2 in memory.rs, which you can run using
     //       cargo run --bin memory
     pub fn clear(&mut self) {
+        // The purpose of clear() function is to romove everything of a vector and free the pointer
+        // create a for loop to repeat n times (n is the length of the vector)
+        for i in 0..self.len {
+            //remove the last value for every repeating.
+            self.remove(self.len-1);
+        }
+        // free the pointer and reset everything to empty/0.
         MALLOC.free(self.ptr_to_data as *mut u8);
         self.ptr_to_data = null_mut();
         self.len = 0;
