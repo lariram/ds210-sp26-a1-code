@@ -80,15 +80,15 @@ impl<T> FastVec<T> {
         if self.len == self.capacity {
             unsafe {
             let ptr_to_data: *mut T = MALLOC.malloc(size_of::<T>() * self.len * 2) as *mut T; // allocate new memory of twice the size
-            for i in 0..self.len { // loop over the original array
+            for i in 0..self.len { // loop over the original vector
                 let val = std::ptr::read(self.ptr_to_data.add(i)); 
                 std::ptr::write(ptr_to_data.add(i), val); 
-                // move over all the elements from the previous pointer to the new pointer
+                // move over all the elements (pointer, length, capacity) to the new pointer
                 }
             MALLOC.free(self.ptr_to_data as *mut u8); // free the old pointer memory
             self.capacity *= 2; // update capacity
             self.ptr_to_data = ptr_to_data; // update pointer
-            std::ptr::write(self.ptr_to_data.add(self.len), t); // write the value in the new array 
+            std::ptr::write(self.ptr_to_data.add(self.len), t); // write the value in the new vector 
             self.len += 1 // update length
             }
 
