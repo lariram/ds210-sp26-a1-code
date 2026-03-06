@@ -5,7 +5,7 @@ fn main() {
     // let mut ptr = std::ptr::null();
 
     // TODO: try with my_var = 1, 2, and 3.
-    let my_var = 1;
+    let my_var = 2;
 
     let x1 = String::from("Hello");
     if my_var < 2 {
