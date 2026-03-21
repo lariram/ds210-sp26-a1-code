@@ -20,5 +20,10 @@ pub fn save_chat_session_to_file(filename: &str, session: &LlamaChatSession) {
 pub fn load_chat_session_from_file(filename: &str) -> Option<LlamaChatSession> {
     // look at fs::read(...)
     // also look at LlamaChatSession::from_bytes(...)
-    unimplemented!("Loading chat session from file {filename}");
+    println!("Loading chat session from file {filename}");
+
+    let session_as_bytes = std::fs::read(filename)
+    let mut session = LlamaChatSession::from_bytes(&session_as_bytes).unwrap();
+
+    Some(session)
 }
