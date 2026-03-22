@@ -26,8 +26,30 @@ pub fn load_chat_session_from_file(filename: &str) -> Option<LlamaChatSession> {
     // also look at LlamaChatSession::from_bytes(...)
     println!("Loading chat session from file {filename}");
 
-    let session_as_bytes = std::fs::read(filename).unwrap();
-    let mut session = LlamaChatSession::from_bytes(&session_as_bytes).unwrap();
+    // Try to read the file
+    let session_as_bytes = match fs::read(filename) {
+        // if there is a file, called it bytes:
+        Ok(bytes) => bytes,
 
+        // if there is no a file, print that the file is failed to read and return None:
+        Err(err) => {
+            println!("Failed to read file: {:?}", err);
+            return None;
+        }
+    };
+
+    // Try to correct the type of session
+    let session = match LlamaChatSession::from_bytes(&session_as_bytes) {
+        // if the type of the session is corect, use it as session:
+        Ok(session) => session,
+
+        // if the type is incorrect, return error message:
+        Err(err) => {
+            println!("Failed to analyze session: {:?}", err);
+            return None;
+        }
+    };
+
+    //revel the contents of session:
     Some(session)
 }
