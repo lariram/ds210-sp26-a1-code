@@ -37,12 +37,12 @@ impl ChatbotV4 {
             Some(session) => {
                 // TODO: what should happen here?
                 
-                let mut string_output = Vec::new();
-                for message in session.history().iter().skip(1) {
-                    string_output.push(message.content().to_string());
+                let mut string_output = Vec::new(); // create a new vector 
+                for message in session.history().iter().skip(1) { // skip first message (prompt) and loop over all messages in session history
+                    string_output.push(message.content().to_string()); // add content of messages to vector 
                 }
 
-                return string_output;
+                return string_output; // return vector with previous chat messages
             }
         }
     }
