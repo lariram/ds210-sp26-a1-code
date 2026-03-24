@@ -22,36 +22,131 @@ impl ChatbotV5 {
 
         match cached_chat {
             None => {
-                println!("chat_with_user: {username} is not in the cache!");
-                // The cache does not have the chat. What should you do? 
+                // create a variable called chat:
+                let mut chat = match file_library::load_chat_session_from_file(&filename) {
+                    
+                // if the chat session exists and saved before, load it to be chat:
+                Some(session) => self.model.chat().with_session(session),
+
+                // if there isn't any chat session file being saved before, create a new chatbot session:
+                None => self
+                    .model
+                    .chat()
+                    .with_system_prompt("The assistant will act like a pirate")
+                    };
                 
-                return String::from("Hello, I am not a bot (yet)!");
+                // Allow the user to input message:
+                let asynchronous_output = chat.add_message(message); // returns response asynchronously
+
+                // generate output of the chatbot:
+                let output = asynchronous_output.await; // waits for response to be ready before returning
+
+                // reveal the output as string:
+                let output = output.unwrap(); // extracts the response as a string
+
+                let session = chat.session().unwrap();
+
+                file_library::save_chat_session_to_file(filename, &session);
+
+                // return the output to the user:
+                return output
             }
             Some(chat_session) => {
                 println!("chat_with_user: {username} is in the cache! Nice!");
-                // The cache has this chat. What should you do?
-                return String::from("Hello, I am not a bot (yet)!");
+                
+                // if the username is stored in the Hashmap, username has been used to talk with chatbot before:
+
+                // Allow the user to input message:
+                let asynchronous_output = chat_session.add_message(message); // returns response asynchronously
+
+                // generate output of the chatbot:
+                let output = asynchronous_output.await; // waits for response to be ready before returning
+
+                // reveal the output as string:
+                let output = output.unwrap(); // extracts the response as a string
+
+                let session = chat_session.session().unwrap();
+
+                file_library::save_chat_session_to_file(filename, &session);
+
+                // return the output to the user:
+                return output
 
             }
         }
     }
 
     pub fn get_history(&mut self, username: String) -> Vec<String> {
+        // ensuring the filename is in the right format using the username:
         let filename = &format!("{}.txt", username);
-        let cached_chat = self.cache.get_chat(&username);
 
+        // fetch the chat session from the cache using username:
+        let cached_chat = self.cache.get_chat(&username);
+        
+        // see if the chat is in the cache:
         match cached_chat {
+
+            // if the chat is not in the cache:
             None => {
+                // print the information message:
                 println!("get_history: {username} is not in the cache!");
                 // TODO: The cache does not have the chat. What should you do?
                 // Your code goes here.
-                return Vec::new();
+                
+                // to see if the chat is saved as file before:
+                let chat = match file_library::load_chat_session_from_file(&filename) {
+                    // if the file is saved before, load the chat to have the session contents:
+                    Some(session) => self.model.chat().with_session(session),
+
+                    // if it is not being saved as a file before, create a new model:
+                    None => self
+                    .model
+                    .chat()
+                    .with_system_prompt("The assistant will act like a pirate"),
+                };
+
+                // creating a session with the correct type from chat:
+                let session = chat.session().unwrap();
+
+                // create a new vecter to store the output:
+                let mut string_output = Vec::new();
+
+                // loop through the history and make sure it is in the correct order:
+                for message in session.history().iter().skip(1) {
+
+                    // add each line of message to the output:
+                    string_output.push(message.content().to_string());
+                }
+
+                // add the chat to the cache:
+                self.cache.insert_chat(username.clone(), chat.clone());
+
+                // return the history in a vector of strings:
+                return string_output;
             }
+
+            // if the chat session exists in the cache:
             Some(chat_session) => {
+
+                //print the information message:
                 println!("get_history: {username} is in the cache! Nice!");
                 // TODO: The cache has this chat. What should you do?
                 // Your code goes here.
-                return Vec::new();
+
+                // make the chat_session in the correct type:
+                let tmp = chat_session.session().unwrap();
+
+                // create a new vecter to store the output:
+                let mut string_output = Vec::new();
+
+                // loop through the history and make sure it is in the correct order:
+                for message in tmp.history().iter().skip(1) {
+                    // add each line of message to the output:
+                    string_output.push(message.content().to_string());
+                }
+
+                // return the history in a vector of strings:
+                return string_output;
 
             }
         }
