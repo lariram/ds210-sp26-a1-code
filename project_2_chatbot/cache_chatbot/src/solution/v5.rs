@@ -23,7 +23,8 @@ impl ChatbotV5 {
         match cached_chat {
             None => {
                 println!("chat_with_user: {username} is not in the cache!");
-                // The cache does not have the chat. What should you do?
+                // The cache does not have the chat. What should you do? 
+                
                 return String::from("Hello, I am not a bot (yet)!");
             }
             Some(chat_session) => {
