@@ -46,8 +46,13 @@ impl ChatbotV5 {
 
                 let session = chat.session().unwrap();
 
+                //save the file:
                 file_library::save_chat_session_to_file(filename, &session);
 
+                let cloned_chat = self.model.chat().with_session(session.clone()); // create clone of chat session
+
+                // insert cloned chat to the cache:
+                self.cache.insert_chat(username.clone(), cloned_chat);
                 // return the output to the user:
                 return output
             }
@@ -67,6 +72,7 @@ impl ChatbotV5 {
 
                 let session = chat_session.session().unwrap();
 
+                //save the file:
                 file_library::save_chat_session_to_file(filename, &session);
 
                 // return the output to the user:
@@ -118,8 +124,10 @@ impl ChatbotV5 {
                     string_output.push(message.content().to_string());
                 }
 
-                // add the chat to the cache:
-                self.cache.insert_chat(username.clone(), chat.clone());
+                let cloned_chat = self.model.chat().with_session(session.clone()); // create clone of chat session
+
+                // insert cloned chat to the cache:
+                self.cache.insert_chat(username.clone(), cloned_chat);
 
                 // return the history in a vector of strings:
                 return string_output;
