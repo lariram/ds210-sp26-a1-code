@@ -67,17 +67,17 @@ impl ChatbotV4 {
 
         match file_library::load_chat_session_from_file(&filename) {
             None => {
-                return Vec::new();
+                return Vec::new(); // create a new vector of strings (to hold future messages)
             },
             Some(session) => {
                 // TODO: what should happen here?
                 
-                let mut string_output = Vec::new();
-                for message in session.history().iter().skip(1) {
-                    string_output.push(message.content().to_string());
+                let mut string_output = Vec::new(); // create a new vector of strings (to hold messages)
+                for message in session.history().iter().skip(1) { // loop through messages of session history, skipping initial prompt
+                    string_output.push(message.content().to_string()); // convert each message to a string and add it to the vector
                 }
 
-                return string_output;
+                return string_output; // return vector of string messages
             }
         }
     }
