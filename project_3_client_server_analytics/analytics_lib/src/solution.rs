@@ -3,7 +3,7 @@ use crate::dataset::{ColumnType, Dataset, Value, Row};
 use crate::query::{Aggregation, Condition, Query};
 
 pub fn filter_dataset(dataset: &Dataset, filter: &Condition) -> Dataset {
-
+    todo!("Implement this!");
 }
 
 pub fn group_by_dataset(dataset: Dataset, group_by_column: &String) -> HashMap<Value, Dataset> {
