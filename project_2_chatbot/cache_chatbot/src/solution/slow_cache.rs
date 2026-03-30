@@ -20,7 +20,7 @@ impl<V> Cache<V> {
             usage_history,
         };
     }
-
+    
     // Create a new Cache with the given capacity.
     pub fn new(max_size: usize) -> Cache<V> {
         return Cache {
@@ -34,11 +34,47 @@ impl<V> Cache<V> {
     fn remove_least_recently_used(&mut self) {
         // TODO: your code goes here.
         // println!("Removing least recently used");
+
+        // if the username history vector is not empty:
+        if !self.usage_history.is_empty() {
+            // remove the very first username from the vector:
+            let least_recent_username = self.usage_history.remove(0); 
+
+            // remove the username from the hashmap:
+            self.hashmap.remove(&least_recent_username);
+            }
     }
+
     fn mark_as_most_recently_used(&mut self, username: String) {
         // TODO: your code goes here.
         // println!("Marking {username} as most recently used");
-    }
+
+        // to see if the username vector contains the username:
+        if self.usage_history.contains(&username) {
+
+            // if it does contain the username:
+            // create a loop to loop through the index:
+            for index in 0..self.usage_history.len() {
+                // if finds the index position of the username:
+                if self.usage_history[index] == username {
+
+                    // remove it from the usernames vector:
+                    self.usage_history.remove(index);
+
+                    // update the username to the end:
+                    self.usage_history.push(username);
+
+                    //stop the loop now:
+                    break;
+                }
+            }
+        }    else {
+            // if the username is not in the vector:
+            // add it to the end of the vector:
+            self.usage_history.push(username);
+            }
+        }
+    
 
     // Reading from the cache:
     // if the username is in the cache, it must be marked as the most recently
