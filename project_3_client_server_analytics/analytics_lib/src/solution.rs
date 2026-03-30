@@ -59,7 +59,30 @@ pub fn filter_dataset(dataset: &Dataset, filter: &Condition) -> Dataset {
 }
 
 pub fn group_by_dataset(dataset: Dataset, group_by_column: &String) -> HashMap<Value, Dataset> {
-    todo!("Implement this!");
+    // find the column index of the column I want to group:
+    let column_index = dataset.column_index(group_by_column);
+
+    // get the columns of the input dataset:
+    let input_columns = dataset.columns();
+
+    // create a new HashMap to store the output:
+    let mut groups: HashMap<Value, Dataset> = HashMap::new();
+
+    // iterate each row of the dataset:
+    for row in dataset.iter() {
+        // let each group to accord to the row value of the column:
+        let key = row.get_value(column_index).clone();
+
+        // if the group does not contain the key:
+        if !groups.contains_key(&key) {
+            // insert the key to it with new dataset with correct column:
+            groups.insert(key.clone(), Dataset::new(input_columns.clone()));
+        }
+        // Get the group and add the row:
+        groups.get_mut(&key).unwrap().add_row(row.clone());
+    }
+    //return the HashMap contains all groups:
+    return groups
 }
 
 pub fn aggregate_dataset(dataset: HashMap<Value, Dataset>, aggregation: &Aggregation) -> HashMap<Value, Value> {
