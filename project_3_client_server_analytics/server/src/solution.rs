@@ -11,5 +11,10 @@ pub fn slow_rpc(input_dataset: &Dataset) -> Dataset {
 
 pub fn fast_rpc(input_dataset: &Dataset, query: Query) -> Dataset {
     println!("fast_rpc called");
-    todo!("Implement this");
+    
+    // process the dataset and query using the compute query on dataset function:
+    let output_dataset = analytics_lib::solution::compute_query_on_dataset(input_dataset, &query);
+
+    // returnt the output dataset:
+    return output_dataset
 }
