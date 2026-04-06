@@ -6,6 +6,7 @@ pub fn hello() -> String {
 }
 
 pub fn slow_rpc(input_dataset: &Dataset) -> Dataset {
+    println!("using slow_rpc");
     return input_dataset.clone()
 }
 
