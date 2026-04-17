@@ -7,75 +7,59 @@ pub struct SolutionAgent {}
 
 // Put your solution here.
 impl Agent for SolutionAgent {
-    // Should returns (<score>, <x>, <y>)
-    // where <score> is your estimate for the score of the game
-    // and <x>, <y> are the position of the move your solution will make.
+    
     fn solve(board: &mut Board, player: Player, _time_limit: u64) -> (i32, usize, usize) {
-        // If you want to make a recursive call to this solution, use
-        // `SolutionAgent::solve(...)`
+        
+        let max_depth = 4; // set max depth
+        return minimax_helper(board, player, max_depth); // call helper function to do the solving
 
-        // create the base code:
-        if board.game_over() {
-            // generate the score of the board:
-            let score = board.score();
+    }
+}
 
-            // output the score with random move:
-            return (score, 0, 0);
-        }
+fn minimax_helper(board: &mut Board, player: Player, depth: u32) -> (i32, usize, usize) { // new helper function that tracks depth 
+    if board.game_over() || depth == 0 { // this stops the game or when it naturally ends or when depth count hits 0
+        let score: i32 = heuristic(board); // pass through heuristic to get score
+        return (score, 0, 0); 
+    }
 
-        // Initialize "best" depending on whether we are maximizing or minimizing:
-        let mut best_score = match player {
-            Player::X => i32::MIN, // X wants to maximize, so it should start from minium
-            Player::O => i32::MAX, // O wants to minimize, so it should start from maximum.
-        };
+    // keep original initialization code
+    let mut best_score: i32 = match player {
+        Player::X => i32::MIN,
+        Player::O => i32::MAX,
+    };
+    let all_moves: Vec<(usize, usize)> = board.moves();
+    let mut best_move: (usize, usize) = all_moves[0];
 
-        // generate a vector containing all possible moves:
-        let all_moves = board.moves();
+    // start by keeping previous loop 
+    for mv in all_moves {
+        let mut next_board: Board = board.clone();
+        next_board.apply_move(mv, player);
 
-        // initialize the best move as the first move for now:
-        let mut best_move = all_moves[0];
+        let (score, _x, _y) = 
+        minimax_helper(&mut next_board, player.flip(), depth - 1); // call helper function, also subtract 1 from depth
 
-        // use a for loop to iterate every moves:
-        for mv in all_moves {
-            // Clone so we do not destroy the original board state:
-            let mut next_board = board.clone();
-
-            // apply the move with my player:
-            next_board.apply_move(mv, player);
-
-            // Recurse for the opponent. How?
-            let (score, x, y) =
-                SolutionAgent::solve(&mut next_board, player.flip(), _time_limit);
-
-            // update the best moves data:
-            match player {
-
-                // if the player is X:
-                Player::X => {
-
-                    // if score is higher than the old best moves, replace it:
-                    if score > best_score {
-                        best_score = score;
-                        best_move = mv;
-                    }
+        // keep previous method of updating score 
+        match player {
+        Player::X => {
+            if score > best_score {
+                best_score = score;
+                best_move = mv;
                 }
-
-                // if the Player is O:
-                Player::O => {
-                    // if score is higher than the old best moves, replace it:
-                    if score < best_score {
-                        best_score = score;
-                        best_move = mv;
-                    }
+            }
+        Player::O => {
+            if score < best_score {
+                best_score = score;
+                best_move = mv;
                 }
             }
         }
-
-        // separate the best move into two usize thing so we can return later:
-        let (x, y) = best_move;
-
-        // return the final best score and best moves:
-        return (best_score, x, y);
     }
+
+    let (x, y) = best_move;
+    return (best_score, x, y);
+}
+
+fn heuristic(board: &Board) -> i32 { // dedicated heuristic (evaluation) function
+    return board.score();
 }
 
