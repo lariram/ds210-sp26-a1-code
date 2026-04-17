@@ -10,7 +10,15 @@ impl Agent for SolutionAgent {
     
     fn solve(board: &mut Board, player: Player, _time_limit: u64) -> (i32, usize, usize) {
         
-        let max_depth = 4; // set max depth
+        let available_moves = board.moves().len();
+
+        let max_depth = if available_moves <= 9 { // check if board is 3x3 or 5x5 to determine best depth
+            10
+        } else {
+            4
+        };
+
+        // let max_depth = 4; // original code to set max depth
         return minimax_helper(board, player, max_depth); // call helper function to do the solving
 
     }
