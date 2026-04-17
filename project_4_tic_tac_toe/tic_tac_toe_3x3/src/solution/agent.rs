@@ -13,8 +13,13 @@ impl Agent for SolutionAgent {
     fn solve(board: &mut Board, player: Player, _time_limit: u64) -> (i32, usize, usize) {
         // If you want to make a recursive call to this solution, use
         // `SolutionAgent::solve(...)`
+
+        // create the base code:
         if board.game_over() {
+            // generate the score of the board:
             let score = board.score();
+
+            // output the score with random move:
             return (score, 0, 0);
         }
 
@@ -66,9 +71,10 @@ impl Agent for SolutionAgent {
             }
         }
 
+        // separate the best move into two usize thing so we can return later:
         let (x, y) = best_move;
-        return (best_score, x, y);
 
-        
+        // return the final best score and best moves:
+        return (best_score, x, y);
     }
 }
