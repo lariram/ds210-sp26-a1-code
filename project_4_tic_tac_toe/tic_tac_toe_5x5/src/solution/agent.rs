@@ -27,8 +27,14 @@ fn minimax_helper(board: &mut Board, player: Player, depth: u32) -> (i32, usize,
         Player::X => i32::MIN,
         Player::O => i32::MAX,
     };
+
+    // generate all moves:
     let all_moves: Vec<(usize, usize)> = board.moves();
-    let mut best_move: (usize, usize) = all_moves[0];
+
+    // set the best and first move:
+    let n = board.get_cells().len();
+    let center = (n/2,n/2);
+    let mut best_move: (usize, usize) = center;
 
     // start by keeping previous loop 
     for mv in all_moves {
