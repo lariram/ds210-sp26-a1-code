@@ -10,7 +10,14 @@ impl Agent for SolutionAgent {
     
     fn solve(board: &mut Board, player: Player, _time_limit: u64) -> (i32, usize, usize) {
         
-        let max_depth = 4; // set max depth
+        let available_moves = board.moves().len();
+        // let max_depth = 4; // set max depth
+        let max_depth = if available_moves <= 9 { // check if board is 3x3 or 5x5 to determine best depth
+            7
+        } else {
+            4
+        };
+
         return minimax_helper(board, player, max_depth); // call helper function to do the solving
 
     }
@@ -32,9 +39,9 @@ fn minimax_helper(board: &mut Board, player: Player, depth: u32) -> (i32, usize,
     let all_moves: Vec<(usize, usize)> = board.moves();
 
     // set the best and first move:
-    let n = board.get_cells().len();
-    let center = (n/2,n/2);
-    let mut best_move: (usize, usize) = center;
+    //let n = board.get_cells().len();
+    // let center = (n/2,n/2);
+    let mut best_move = all_moves[0];
 
     // start by keeping previous loop 
     for mv in all_moves {
