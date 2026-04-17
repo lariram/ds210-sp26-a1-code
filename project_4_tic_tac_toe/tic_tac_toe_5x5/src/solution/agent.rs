@@ -32,11 +32,11 @@ fn minimax_helper(board: &mut Board, player: Player, depth: u32) -> (i32, usize,
 
     // start by keeping previous loop 
     for mv in all_moves {
-        let mut next_board: Board = board.clone();
-        next_board.apply_move(mv, player);
+        
+        board.apply_move(mv, player);
 
         let (score, _x, _y) = 
-        minimax_helper(&mut next_board, player.flip(), depth - 1); // call helper function, also subtract 1 from depth
+        minimax_helper(board, player.flip(), depth - 1); // call helper function, also subtract 1 from depth
 
         // keep previous method of updating score 
         match player {
@@ -53,13 +53,14 @@ fn minimax_helper(board: &mut Board, player: Player, depth: u32) -> (i32, usize,
                 }
             }
         }
+        board.undo_move(mv, player);
     }
 
     let (x, y) = best_move;
     return (best_score, x, y);
 }
 
-fn heuristic(board: &Board) -> i32 { // dedicated heuristic (evaluation) function
+fn heuristic(board: &mut Board) -> i32 { // dedicated heuristic (evaluation) function
     return board.score();
 }
 
