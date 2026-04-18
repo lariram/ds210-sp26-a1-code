@@ -1,6 +1,7 @@
 use tic_tac_toe_stencil::agents::Agent;
 use tic_tac_toe_stencil::board::Board;
 use tic_tac_toe_stencil::player::Player;
+use tic_tac_toe_stencil::board::Cell;
 
 // Your solution solution.
 pub struct SolutionAgent {}
@@ -73,7 +74,109 @@ fn minimax_helper(board: &mut Board, player: Player, depth: u32) -> (i32, usize,
     return (best_score, x, y);
 }
 
-fn heuristic(board: &mut Board) -> i32 { // dedicated heuristic (evaluation) function
-    return board.score();
+// A helper function for solving the Heuristic function:
+fn score_line(a: &Cell, b: &Cell, c: &Cell) -> f32 {
+    let mut x = 0;
+    let mut o = 0;
+    let mut empty = 0;
+
+    // count contents of the 3 cells
+    for cell in [a, b, c] {
+        match cell {
+            Cell::X => x += 1,          // count X
+            Cell::O => o += 1,          // count O
+            Cell::Empty => empty += 1,  // count empty
+            Cell::Wall => return 0.0,   // walls block the line
+        }
+    }
+
+    // if both players present, line is blocked
+    if x > 0 && o > 0 {
+        return 0.0;
+    }
+
+    // scoring (small values to keep total stable)
+    if x == 3 {
+        return 1.0        // strong win for X
+    } else if x == 2 && empty == 1 {
+        return 0.5        // good opportunity for X
+    } else if x == 1 && empty == 2 {
+        return 0.2        // weak opportunity
+    } else if o == 3 {
+        return -1.0       // strong win for O
+    } else if o == 2 && empty == 1 {
+        return -0.5       // threat from O
+    } else if o == 1 && empty == 2 {
+        return -0.2       // weak threat
+    } else {
+        return 0.0        // empty or irrelevant
+    }
 }
+
+//fn heuristic(board: &mut Board) -> i32 { // dedicated heuristic (evaluation) function
+//    return board.score();
+//}
+
+fn heuristic(board: &Board) -> i32 {
+    let cells = board.get_cells();              // get 2D board
+    let n = cells.len();                        // board size (3 or 5)
+
+    let mut total_score: f32 = 0.0;             // accumulated score
+    //let mut total_lines: f32 = 0.0;             // number of 3-cell segments checked
+
+    // loop over every cell as a starting point
+    for i in 0..n {
+        for j in 0..n {
+
+            // check horizontal segment (i, j) → (i, j+2)
+            if j + 2 < n {
+                total_score += score_line(&cells[i][j], &cells[i][j + 1], &cells[i][j + 2]);
+                //total_lines += 1.0;
+            }
+
+            // check vertical segment (i, j) → (i+2, j)
+            if i + 2 < n {
+                total_score += score_line(&cells[i][j], &cells[i + 1][j], &cells[i + 2][j]);
+                //total_lines += 1.0;
+            }
+
+            // check diagonal down-right
+            if i + 2 < n && j + 2 < n {
+                total_score += score_line(
+                    &cells[i][j],
+                    &cells[i + 1][j + 1],
+                    &cells[i + 2][j + 2],
+                );
+                //total_lines += 1.0;
+            }
+
+            // check diagonal down-left
+            if i + 2 < n && j >= 2 {
+                total_score += score_line(
+                    &cells[i][j],
+                    &cells[i + 1][j - 1],
+                    &cells[i + 2][j - 2],
+                );
+                //total_lines += 1.0;
+            }
+        }
+    }
+
+    // return the total score directly:
+    return total_score as i32
+    //if total_lines == 0.0 {
+       // return 0; // avoid division by zero (shouldn't happen, but safe)
+    //}
+
+    // normalize score into range [-1, 1]
+    //let normalized = total_score / total_lines;
+
+    // convert float to integer in [-1, 1]
+    //if normalized > 0.0 {
+    //    1
+    //} else if normalized < 0.0 {
+    //    -1
+    //} else {
+    //    0
+    }
 
