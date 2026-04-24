@@ -75,7 +75,7 @@ fn minimax_helper(board: &mut Board, player: Player, depth: u32) -> (i32, usize,
 }
 
 // A helper function for solving the Heuristic function:
-fn score_line(a: &Cell, b: &Cell, c: &Cell) -> f32 {
+fn score_line(a: &Cell, b: &Cell, c: &Cell) -> i32 {
     let mut x = 0;
     let mut o = 0;
     let mut empty = 0;
@@ -86,43 +86,89 @@ fn score_line(a: &Cell, b: &Cell, c: &Cell) -> f32 {
             Cell::X => x += 1,          // count X
             Cell::O => o += 1,          // count O
             Cell::Empty => empty += 1,  // count empty
-            Cell::Wall => return 0.0,   // walls block the line
+            Cell::Wall => return 0,   // walls block the line
         }
     }
 
     // if both players present, line is blocked
     if x > 0 && o > 0 {
-        return 0.0;
+        return 0;
     }
 
     // scoring (small values to keep total stable)
     if x == 3 {
-        return 1.0        // strong win for X
+        return 1000        // strong win for X
     } else if x == 2 && empty == 1 {
-        return 0.5        // good opportunity for X
+        return 40        // good opportunity for X
     } else if x == 1 && empty == 2 {
-        return 0.2        // weak opportunity
+        return 10        // weak opportunity
     } else if o == 3 {
-        return -1.0       // strong win for O
+        return -1000       // strong win for O
     } else if o == 2 && empty == 1 {
-        return -0.5       // threat from O
+        return -50       // threat from O, slightly more important than we are x =2 and empty =1.
     } else if o == 1 && empty == 2 {
-        return -0.2       // weak threat
+        return -10       // weak threat
     } else {
-        return 0.0        // empty or irrelevant
+        return 0        // empty or irrelevant
     }
 }
 
-//fn heuristic(board: &mut Board) -> i32 { // dedicated heuristic (evaluation) function
-//    return board.score();
-//}
+// This function gives a small bonus based on where pieces are placed on the board.
+// Idea: cells closer to the center are more valuable because they can form more lines.
+fn position_bonus(cells: &Vec<Vec<Cell>>) -> i32 {
+
+    // Get board size (3 or 5)
+    let n = cells.len();  
+
+    // Find the center index (for 5x5 → center = 2)
+    let center = (n / 2) as i32;  
+
+    // This will store the total bonus score
+    let mut bonus = 0;  
+
+    // Loop through every row
+    for i in 0..n {
+
+        // Loop through every column
+        for j in 0..n {
+
+            // Compute how far this cell is from the center
+            // Example: center (2,2), cell (0,0) → distance = 4
+            // abs() computes for absolute value
+            let distance_from_center =
+                (i as i32 - center).abs() + (j as i32 - center).abs();
+
+            // Convert distance into a score
+            // Closer to center → bigger value
+            // Farther → smaller value
+            // choose 6, because this is the maximum possible distance in 5x5
+            let value = 6 - distance_from_center;  
+
+            // Check what is inside the cell
+            match cells[i][j] {
+
+                // If it's X, add the value (good for X)
+                Cell::X => bonus += value,  
+
+                // If it's O, subtract the value (bad for X)
+                Cell::O => bonus -= value,  
+
+                // If it's empty or wall, ignore
+                _ => {}
+            }
+        }
+    }
+
+    // Return total positional bonus
+    return bonus
+}
 
 fn heuristic(board: &Board) -> i32 {
     let cells = board.get_cells();              // get 2D board
     let n = cells.len();                        // board size (3 or 5)
 
-    let mut total_score: f32 = 0.0;             // accumulated score
-    //let mut total_lines: f32 = 0.0;             // number of 3-cell segments checked
+    let mut total_score: i32 = 0;             // accumulated score
+    //let mut total_lines: i32 = 0;             // number of 3-cell segments checked
 
     // loop over every cell as a starting point
     for i in 0..n {
@@ -162,21 +208,10 @@ fn heuristic(board: &Board) -> i32 {
         }
     }
 
-    // return the total score directly:
-    return total_score as i32
-    //if total_lines == 0.0 {
-       // return 0; // avoid division by zero (shouldn't happen, but safe)
-    //}
-
-    // normalize score into range [-1, 1]
-    //let normalized = total_score / total_lines;
-
-    // convert float to integer in [-1, 1]
-    //if normalized > 0.0 {
-    //    1
-    //} else if normalized < 0.0 {
-    //    -1
-    //} else {
-    //    0
+    
+    // Add a small positional bonus for pieces in flexible locations.
+    // This rewards overlap potential without making the heuristic too slow.
+    total_score += position_bonus(cells); // CHANGE MADE HERE!
+    return total_score;
+    
     }
-
