@@ -19,12 +19,13 @@ impl Agent for SolutionAgent {
             4
         };
 
-        return minimax_helper(board, player, max_depth); // call helper function to do the solving
+        return minimax_helper(board, player, max_depth, i32::MIN, i32::MAX); // call helper function to do the solving, added alpha and beta 
 
     }
 }
 
-fn minimax_helper(board: &mut Board, player: Player, depth: u32) -> (i32, usize, usize) { // new helper function that tracks depth 
+fn minimax_helper(board: &mut Board, player: Player, depth: u32, mut alpha: i32, mut beta: i32) -> (i32, usize, usize) { // new helper function that tracks depth, added alpha and beta 
+    // alpha = best score of max, starts at negative infinity; beta = best score of min, starts at positive infinity
     if board.game_over() || depth == 0 { // this stops the game or when it naturally ends or when depth count hits 0
         let score: i32 = heuristic(board); // pass through heuristic to get score
         return (score, 0, 0); 
@@ -48,9 +49,7 @@ fn minimax_helper(board: &mut Board, player: Player, depth: u32) -> (i32, usize,
     for mv in all_moves {
         
         board.apply_move(mv, player);
-
-        let (score, _x, _y) = 
-        minimax_helper(board, player.flip(), depth - 1); // call helper function, also subtract 1 from depth
+        let (score, _x, _y) = minimax_helper(board, player.flip(), depth - 1, alpha, beta); // call helper function, also subtract 1 from depth; add alpha and beta
 
         // keep previous method of updating score 
         match player {
@@ -59,11 +58,19 @@ fn minimax_helper(board: &mut Board, player: Player, depth: u32) -> (i32, usize,
                 best_score = score;
                 best_move = mv;
                 }
+            alpha = std::cmp::max(alpha, best_score);
+            if alpha >= beta {
+                break; // stop searching this branch
+                }
             }
         Player::O => {
             if score < best_score {
                 best_score = score;
                 best_move = mv;
+                }
+            beta = std::cmp::min(beta, best_score);
+            if alpha >= beta {
+                break; // stop searching this branch
                 }
             }
         }
