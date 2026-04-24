@@ -49,5 +49,5 @@ pub enum Agents {
     Test,
     Solution,
     Manual,
-    
+    Solution2
 }

@@ -1,4 +1,5 @@
 use clap::Parser;
+use tic_tac_toe_5x5::solution::agent2::SolutionAgent2;
 use tic_tac_toe_stencil::agents::*;
 use tic_tac_toe_stencil::game_loop;
 use tic_tac_toe_stencil::player::Player;
@@ -26,29 +27,42 @@ fn main() {
         (Agents::First, Agents::Random) => game_loop::<_, FirstMoveAgent, RandomAgent>(layout, TIME_LIMIT, false),
         (Agents::First, Agents::Solution) => game_loop::<_, FirstMoveAgent, SolutionAgent>(layout, TIME_LIMIT, false),
         (Agents::First, Agents::Test) => game_loop::<_, FirstMoveAgent, TestAgent>(layout, TIME_LIMIT, false),
+        (Agents::First, Agents::Solution2) => game_loop::<_, FirstMoveAgent, SolutionAgent2>(layout, TIME_LIMIT, false),
         // Manual vs the world.
         (Agents::Manual, Agents::First) => game_loop::<_, ManualAgent, FirstMoveAgent>(layout, TIME_LIMIT, false),
         (Agents::Manual, Agents::Manual) => game_loop::<_, ManualAgent, ManualAgent>(layout, TIME_LIMIT, false),
         (Agents::Manual, Agents::Random) => game_loop::<_, ManualAgent, RandomAgent>(layout, TIME_LIMIT, false),
         (Agents::Manual, Agents::Solution) => game_loop::<_, ManualAgent, SolutionAgent>(layout, TIME_LIMIT, false),
         (Agents::Manual, Agents::Test) => game_loop::<_, ManualAgent, TestAgent>(layout, TIME_LIMIT, false),
+        (Agents::Manual, Agents::Solution2) => game_loop::<_, ManualAgent, SolutionAgent2>(layout, TIME_LIMIT, false),
         // Random vs the world.
         (Agents::Random, Agents::First) => game_loop::<_, RandomAgent, FirstMoveAgent>(layout, TIME_LIMIT, false),
         (Agents::Random, Agents::Manual) => game_loop::<_, RandomAgent, ManualAgent>(layout, TIME_LIMIT, false),
         (Agents::Random, Agents::Random) => game_loop::<_, RandomAgent, RandomAgent>(layout, TIME_LIMIT, false),
         (Agents::Random, Agents::Solution) => game_loop::<_, RandomAgent, SolutionAgent>(layout, TIME_LIMIT, false),
         (Agents::Random, Agents::Test) => game_loop::<_, RandomAgent, TestAgent>(layout, TIME_LIMIT, false),
+        (Agents::Random, Agents::Solution2) => game_loop::<_, RandomAgent, SolutionAgent2>(layout, TIME_LIMIT, false),
         // Solution vs the world.
         (Agents::Solution, Agents::First) => game_loop::<_, SolutionAgent, FirstMoveAgent>(layout, TIME_LIMIT, false),
         (Agents::Solution, Agents::Manual) => game_loop::<_, SolutionAgent, ManualAgent>(layout, TIME_LIMIT, false),
         (Agents::Solution, Agents::Random) => game_loop::<_, SolutionAgent, RandomAgent>(layout, TIME_LIMIT, false),
         (Agents::Solution, Agents::Solution) => game_loop::<_, SolutionAgent, SolutionAgent>(layout, TIME_LIMIT, false),
         (Agents::Solution, Agents::Test) => game_loop::<_, SolutionAgent, TestAgent>(layout, TIME_LIMIT, false),
+        (Agents::Solution, Agents::Solution2) => game_loop::<_, SolutionAgent, SolutionAgent2>(layout, TIME_LIMIT, false),
         // Test vs the world.
         (Agents::Test, Agents::First) => game_loop::<_, TestAgent, FirstMoveAgent>(layout, TIME_LIMIT, false),
         (Agents::Test, Agents::Manual) => game_loop::<_, TestAgent, ManualAgent>(layout, TIME_LIMIT, false),
         (Agents::Test, Agents::Random) => game_loop::<_, TestAgent, RandomAgent>(layout, TIME_LIMIT, false),
         (Agents::Test, Agents::Solution) => game_loop::<_, TestAgent, SolutionAgent>(layout, TIME_LIMIT, false),
         (Agents::Test, Agents::Test) => game_loop::<_, TestAgent, TestAgent>(layout, TIME_LIMIT, false),
+        (Agents::Test, Agents::Solution2) => game_loop::<_, TestAgent, SolutionAgent2>(layout, TIME_LIMIT, false),
+
+        // Old Agent vs the world.
+        (Agents::Solution2, Agents::First) => game_loop::<_, SolutionAgent2, FirstMoveAgent>(layout, TIME_LIMIT, false),
+        (Agents::Solution2, Agents::Manual) => game_loop::<_, SolutionAgent2, ManualAgent>(layout, TIME_LIMIT, false),
+        (Agents::Solution2, Agents::Random) => game_loop::<_, SolutionAgent2, RandomAgent>(layout, TIME_LIMIT, false),
+        (Agents::Solution2, Agents::Solution) => game_loop::<_, SolutionAgent2, SolutionAgent>(layout, TIME_LIMIT, false),
+        (Agents::Solution2, Agents::Test) => game_loop::<_, SolutionAgent2, TestAgent>(layout, TIME_LIMIT, false),
+        (Agents::Solution2, Agents::Solution2) => game_loop::<_, SolutionAgent2, SolutionAgent2>(layout, TIME_LIMIT, false),
     };
 }
