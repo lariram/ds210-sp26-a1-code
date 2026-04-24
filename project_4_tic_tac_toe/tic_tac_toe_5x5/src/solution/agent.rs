@@ -14,7 +14,7 @@ impl Agent for SolutionAgent {
         let available_moves = board.moves().len();
         // let max_depth = 4; // set max depth
         let max_depth = if available_moves <= 9 { // check if board is 3x3 or 5x5 to determine best depth
-            7
+            6
         } else {
             4
         };
@@ -171,8 +171,13 @@ fn position_bonus(cells: &Vec<Vec<Cell>>) -> i32 {
 }
 
 fn heuristic(board: &Board) -> i32 {
+    
     let cells = board.get_cells();              // get 2D board
-    let n = cells.len();                        // board size (3 or 5)
+    let n = cells.len();                       // board size (3 or 5)
+
+    if n == 3 {
+        return board.score();
+    }
 
     let mut total_score: i32 = 0;             // accumulated score
     //let mut total_lines: i32 = 0;             // number of 3-cell segments checked
