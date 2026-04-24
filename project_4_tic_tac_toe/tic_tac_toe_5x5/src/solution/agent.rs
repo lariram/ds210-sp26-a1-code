@@ -99,13 +99,13 @@ fn score_line(a: &Cell, b: &Cell, c: &Cell) -> i32 {
     if x == 3 {
         return 1000        // strong win for X
     } else if x == 2 && empty == 1 {
-        return 40        // good opportunity for X
+        return 80        // good opportunity for X
     } else if x == 1 && empty == 2 {
         return 10        // weak opportunity
     } else if o == 3 {
         return -1000       // strong win for O
     } else if o == 2 && empty == 1 {
-        return -50       // threat from O, slightly more important than we are x =2 and empty =1.
+        return -90       // threat from O, slightly more important than we are x =2 and empty =1.
     } else if o == 1 && empty == 2 {
         return -10       // weak threat
     } else {
