@@ -10,11 +10,13 @@ pub struct SolutionAgent {}
 impl Agent for SolutionAgent {
     
     fn solve(board: &mut Board, player: Player, _time_limit: u64) -> (i32, usize, usize) {
+        let cells = board.get_cells();
         
-        let available_moves = board.moves().len();
+        let available_moves: Vec<(usize, usize)> = board.moves().into_iter().filter(|&(x, y)| cells[x][y] == Cell::Empty).collect();
+        
         // let max_depth = 4; // set max depth
-        let max_depth = if available_moves <= 9 { // check if board is 3x3 or 5x5 to determine best depth
-            6
+        let max_depth = if available_moves.len() <= 9 { // check if board is 3x3 or 5x5 to determine best depth
+            9
         } else {
             4
         };
@@ -37,19 +39,38 @@ fn minimax_helper(board: &mut Board, player: Player, depth: u32, mut alpha: i32,
         Player::O => i32::MAX,
     };
 
-    // generate all moves:
-    let all_moves: Vec<(usize, usize)> = board.moves();
+    let cells = board.get_cells(); // check for walls
 
-    // set the best and first move:
-    //let n = board.get_cells().len();
-    // let center = (n/2,n/2);
+    // generate all moves (filter to see moves in empty cells only):
+    let all_moves: Vec<(usize, usize)> = board.moves().into_iter().filter(|&(x, y)| {
+        if y < cells.len() && x < cells[y].len() {
+            cells[x][y] == Cell::Empty
+        } else {
+            false
+        }
+    })
+    .collect();
+    
+    if all_moves.is_empty() { // if no moves available return current heuristic
+        return (heuristic(board), 0, 0);
+    }
+
     let mut best_move = all_moves[0];
 
     // start by keeping previous loop 
     for mv in all_moves {
-        
+
+        let current_cells = board.get_cells();
+        if current_cells[mv.1][mv.0] != Cell::Empty {
+            continue; 
+        }
+
+        // println!("Trying move: {}, {}", mv.0, mv.1);
+
         board.apply_move(mv, player);
         let (score, _x, _y) = minimax_helper(board, player.flip(), depth - 1, alpha, beta); // call helper function, also subtract 1 from depth; add alpha and beta
+
+        board.undo_move(mv, player);
 
         // keep previous method of updating score 
         match player {
@@ -74,7 +95,7 @@ fn minimax_helper(board: &mut Board, player: Player, depth: u32, mut alpha: i32,
                 }
             }
         }
-        board.undo_move(mv, player);
+        //board.undo_move(mv, player); this line was moved above
     }
 
     let (x, y) = best_move;
@@ -176,7 +197,8 @@ fn heuristic(board: &Board) -> i32 {
     let n = cells.len();                       // board size (3 or 5)
 
     if n == 3 {
-        return board.score();
+        let s = board.score();
+        return s * 100; // amplify so better moves are very clearly better
     }
 
     let mut total_score: i32 = 0;             // accumulated score
