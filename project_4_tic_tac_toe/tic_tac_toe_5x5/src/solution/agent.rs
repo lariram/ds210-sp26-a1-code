@@ -24,7 +24,8 @@ impl Agent for SolutionAgent {
     }
 }
 
-fn minimax_helper(board: &mut Board, player: Player, depth: u32) -> (i32, usize, usize) { // new helper function that tracks depth 
+fn minimax_helper(board: &mut Board, player: Player, depth: u32) -> (i32, usize, usize) { 
+    // new helper function that tracks depth 
     if board.game_over() || depth == 0 { // this stops the game or when it naturally ends or when depth count hits 0
         let score: i32 = heuristic(board); // pass through heuristic to get score
         return (score, 0, 0); 
@@ -49,6 +50,8 @@ fn minimax_helper(board: &mut Board, player: Player, depth: u32) -> (i32, usize,
         
         board.apply_move(mv, player);
 
+    
+
         let (score, _x, _y) = 
         minimax_helper(board, player.flip(), depth - 1); // call helper function, also subtract 1 from depth
 
@@ -59,12 +62,14 @@ fn minimax_helper(board: &mut Board, player: Player, depth: u32) -> (i32, usize,
                 best_score = score;
                 best_move = mv;
                 }
+
             }
         Player::O => {
             if score < best_score {
                 best_score = score;
                 best_move = mv;
                 }
+            
             }
         }
         board.undo_move(mv, player);
