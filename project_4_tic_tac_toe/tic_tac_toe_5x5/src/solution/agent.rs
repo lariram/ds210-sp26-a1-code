@@ -16,7 +16,7 @@ impl Agent for SolutionAgent {
         
         // let max_depth = 4; // set max depth
         let max_depth = if available_moves.len() <= 9 { // check if board is 3x3 or 5x5 to determine best depth
-            9
+            5
         } else {
             4
         };
