@@ -16,7 +16,7 @@ impl Agent for SolutionAgent {
         
         // let max_depth = 4; // set max depth
         let max_depth = if available_moves.len() <= 9 { // check if board is 3x3 or 5x5 to determine best depth
-            5
+            7
         } else {
             4
         };
@@ -127,13 +127,13 @@ fn score_line(a: &Cell, b: &Cell, c: &Cell) -> i32 {
     if x == 3 {
         return 1000        // strong win for X
     } else if x == 2 && empty == 1 {
-        return 80        // good opportunity for X
+        return 100        // good opportunity for X
     } else if x == 1 && empty == 2 {
         return 10        // weak opportunity
     } else if o == 3 {
         return -1000       // strong win for O
     } else if o == 2 && empty == 1 {
-        return -90       // threat from O, slightly more important than we are x =2 and empty =1.
+        return -100       // threat from O, slightly more important than we are x =2 and empty =1.
     } else if o == 1 && empty == 2 {
         return -10       // weak threat
     } else {
