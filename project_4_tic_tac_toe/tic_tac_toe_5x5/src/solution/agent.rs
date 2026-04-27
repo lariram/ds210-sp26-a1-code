@@ -14,26 +14,15 @@ impl Agent for SolutionAgent {
         let available_moves = board.moves().len();
         // let max_depth = 4; // set max depth
         let max_depth = if available_moves <= 9 { // check if board is 3x3 or 5x5 to determine best depth
-            7
+            9
         } else if available_moves <= 14 {
             6 // Change: late game has fewer choices, so we can safely search deeper.
         } else if available_moves <= 18 {
             5 // Change: middle game can search a little deeper than the opening.
         } else {
-            6 // go even deeper near end of game
+            4 // Change: early game has many choices, so keep depth smaller to avoid timeout.
         };
 
-        // let max_depth = 4; // set max depth
-
-        // let max_depth = if available_moves.len() <= 9 { // check if board is 3x3 or 5x5 to determine best depth
-        //    7
-        //} else if available_moves.len() <= 14 {
-        //    6 // Change: late game has fewer choices, so we can safely search deeper.
-        //} else if available_moves.len() <= 18 {
-        //    5 // Change: middle game can search a little deeper than the opening.
-        //} else {
-        //    4 // Change: early game has many choices, so keep depth smaller to avoid timeout.
-        //};
        
         return minimax_helper(board, player, max_depth, i32::MIN, i32::MAX); // call helper function to do the solving
     }
@@ -63,7 +52,7 @@ fn minimax_helper(board: &mut Board, player: Player, depth: u32, mut alpha: i32,
         all_moves.sort_by_key(|&mv| {
             board.apply_move(mv, player); // Try this move temporarily.
 
-            let score = board.score(); // Use the real score for faster move ordering.
+            let score = heuristic(board); // use heuristic
 
             board.undo_move(mv, player); // Undo the temporary move so the board returns to normal
 
@@ -80,6 +69,8 @@ fn minimax_helper(board: &mut Board, player: Player, depth: u32, mut alpha: i32,
 
     // start by keeping previous loop 
     for mv in all_moves {
+        
+        board.apply_move(mv, player);
 
         let (score, _x, _y) = 
         minimax_helper(board, player.flip(), depth - 1, alpha, beta); // call helper function, also subtract 1 from depth
@@ -209,45 +200,34 @@ fn position_bonus(cells: &Vec<Vec<Cell>>) -> i32 {
 
 // add a helper to score 4-cell patterns.
 fn score_four_line(a: &Cell, b: &Cell, c: &Cell, d: &Cell) -> i32 { 
-    let mut x = 0; // count how many X cells are in this 4-cell line.
-    let mut o = 0; // count how many O cells are in this 4-cell line.
-    let mut empty = 0; // count how many empty cells are in this 4-cell line.
+    let mut x = 0;
+    let mut o = 0;
+    let mut empty = 0;
 
-    for cell in [a, b, c, d] { // check each cell in the 4-cell line.
-        match cell { // update the correct counter based on the cell type.
-            Cell::X => x += 1, // found one X.
-            Cell::O => o += 1, // found one O.
-            Cell::Empty => empty += 1, //  found one empty space.
-            Cell::Wall => return 0, // walls block the line, so it has no value.
+    for cell in [a, b, c, d] {
+        match cell {
+            Cell::X => x += 1,
+            Cell::O => o += 1,
+            Cell::Empty => empty += 1,
+            Cell::Wall => return 0, // ignore wall breaks
         }
     }
 
-    if x > 0 && o > 0 { // if both players are in the line, neither can use it cleanly.
-        return 0; // mixed lines are blocked, so give no score.
-    }
+    if x > 0 && o > 0 { return 0; } // ignore blocked lines
 
-    if x == 2 && empty == 2 { //  two Xs with two empty spaces can grow later.
-        return 90; //  reward X for a flexible future line.
-    } else if o == 2 && empty == 2 { // two Os with two empty spaces can grow later.
-        return -70; //  penalize because this is good for O.
-    } else if x == 3 && empty == 1 { //  three Xs in four cells may create overlapping triples.
-        return 400; // reward X for strong 4-cell potential.
-    } else if o == 3 && empty == 1 { // three Os in four cells may create overlapping triples.
-        return -300; // penalize because this is strong for O.
-    } else {
-        return 0; // other 4-cell patterns are not important enough to score.
+    // change: simplify scoring, prioritize open threes and reduce risk of accidentally ignoring a wall
+    match (x, o, empty) {
+        (3, 0, 1) => 1000,   // x has 3/4 -> strong threat
+        (0, 3, 1) => -1100,  // o has 3/4 -> needs to be blocked, slightly higher priority to better prevent x from winning
+        (2, 0, 2) => 500,    // x has 2/4 -> potential threat
+        (0, 2, 2) => -500,   // o has 2/4 -> potential threat
+        _ => 0,
     }
 }
 
 fn heuristic(board: &Board) -> i32 {
-    
     let cells = board.get_cells();              // get 2D board
-    let n = cells.len();                       // board size (3 or 5)
-
-    if n == 3 {
-        let s = board.score();
-        return s * 100; // amplify so better moves are very clearly better
-    }
+    let n = cells.len();                        // board size (3 or 5)
 
     let mut total_score: i32 = board.score() * 10000;            // accumulated score
     //let mut total_lines: i32 = 0;             // number of 3-cell segments checked
