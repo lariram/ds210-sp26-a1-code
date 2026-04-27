@@ -15,19 +15,28 @@ impl Agent for SolutionAgent {
         // let max_depth = 4; // set max depth
         let max_depth = if available_moves <= 9 { // check if board is 3x3 or 5x5 to determine best depth
             7
+        } else if available_moves <= 14 {
+            6 // Change: late game has fewer choices, so we can safely search deeper.
+        } else if available_moves <= 18 {
+            5 // Change: middle game can search a little deeper than the opening.
         } else {
-            4
+            4 // Change: early game has many choices, so keep depth smaller to avoid timeout.
         };
 
-        return minimax_helper(board, player, max_depth); // call helper function to do the solving
-
+       
+        return minimax_helper(board, player, max_depth, i32::MIN, i32::MAX); // call helper function to do the solving
     }
 }
 
-fn minimax_helper(board: &mut Board, player: Player, depth: u32) -> (i32, usize, usize) { // new helper function that tracks depth 
-    if board.game_over() || depth == 0 { // this stops the game or when it naturally ends or when depth count hits 0
-        let score: i32 = heuristic(board); // pass through heuristic to get score
-        return (score, 0, 0); 
+
+
+fn minimax_helper(board: &mut Board, player: Player, depth: u32, mut alpha: i32, mut beta: i32) -> (i32, usize, usize) { // new helper function that tracks depth 
+    if board.game_over() {
+        return (board.score() * 10000, 0, 0);
+    }
+
+    if depth == 0 {
+        return (heuristic(board), 0, 0);
     }
 
     // keep original initialization code
@@ -37,8 +46,21 @@ fn minimax_helper(board: &mut Board, player: Player, depth: u32) -> (i32, usize,
     };
 
     // generate all moves:
-    let all_moves: Vec<(usize, usize)> = board.moves();
+    let mut all_moves: Vec<(usize, usize)> = board.moves();
 
+    // sort the moves from smallest to largest, pass by reference for each move:
+    all_moves.sort_by_key(|&mv| {
+        board.apply_move(mv, player); // Try this move temporarily.
+
+        let score = heuristic(board); // Estimate how good the board looks after this move.
+
+        board.undo_move(mv, player); // Undo the temporary move so the board returns to normal.
+
+        match player {
+            Player::X => -score, // Change: X wants high scores first, so negative score sorts high first.
+            Player::O => score,  // Change: O wants low scores first, so normal score sorts low first.
+        }
+    });
     // set the best and first move:
     //let n = board.get_cells().len();
     // let center = (n/2,n/2);
@@ -50,7 +72,9 @@ fn minimax_helper(board: &mut Board, player: Player, depth: u32) -> (i32, usize,
         board.apply_move(mv, player);
 
         let (score, _x, _y) = 
-        minimax_helper(board, player.flip(), depth - 1); // call helper function, also subtract 1 from depth
+        minimax_helper(board, player.flip(), depth - 1, alpha, beta); // call helper function, also subtract 1 from depth
+
+        board.undo_move(mv, player); // Change: undo immediately so pruning cannot leave the board changed.
 
         // keep previous method of updating score 
         match player {
@@ -59,15 +83,25 @@ fn minimax_helper(board: &mut Board, player: Player, depth: u32) -> (i32, usize,
                 best_score = score;
                 best_move = mv;
                 }
+            alpha = alpha.max(best_score); // Change: update alpha because X wants the highest score.
+
+                if beta <= alpha {
+                    break; // Change: stop searching because O already has a better option elsewhere.
+                }
             }
         Player::O => {
             if score < best_score {
                 best_score = score;
                 best_move = mv;
                 }
+            beta = beta.min(best_score); // Change: update beta because O wants the lowest score.
+
+                if beta <= alpha {
+                    break; // Change: stop searching because X already has a better option elsewhere.
+                }
             }
         }
-        board.undo_move(mv, player);
+        
     }
 
     let (x, y) = best_move;
@@ -105,7 +139,7 @@ fn score_line(a: &Cell, b: &Cell, c: &Cell) -> i32 {
     } else if o == 3 {
         return -1000       // strong win for O
     } else if o == 2 && empty == 1 {
-        return -90       // threat from O, slightly more important than we are x =2 and empty =1.
+        return -120      // threat from O
     } else if o == 1 && empty == 2 {
         return -10       // weak threat
     } else {
@@ -215,5 +249,4 @@ fn heuristic(board: &Board) -> i32 {
     return total_score;
     
     }
-
 
