@@ -10,7 +10,7 @@ pub struct SolutionAgent {}
 impl Agent for SolutionAgent {
     
     fn solve(board: &mut Board, player: Player, _time_limit: u64) -> (i32, usize, usize) {
-        
+
         let available_moves = board.moves().len();
         // let max_depth = 4; // set max depth
         let max_depth = if available_moves <= 9 { // check if board is 3x3 or 5x5 to determine best depth
@@ -27,7 +27,6 @@ impl Agent for SolutionAgent {
         return minimax_helper(board, player, max_depth, i32::MIN, i32::MAX); // call helper function to do the solving
     }
 }
-
 
 
 fn minimax_helper(board: &mut Board, player: Player, depth: u32, mut alpha: i32, mut beta: i32) -> (i32, usize, usize) { // new helper function that tracks depth 
@@ -48,19 +47,21 @@ fn minimax_helper(board: &mut Board, player: Player, depth: u32, mut alpha: i32,
     // generate all moves:
     let mut all_moves: Vec<(usize, usize)> = board.moves();
 
-    // sort the moves from smallest to largest, pass by reference for each move:
-    all_moves.sort_by_key(|&mv| {
-        board.apply_move(mv, player); // Try this move temporarily.
+    // sort the moves from smallest to largest, pass by reference for each move (only after depths of 2 so save time):
+    if depth >= 2 {
+        all_moves.sort_by_key(|&mv| {
+            board.apply_move(mv, player); // Try this move temporarily.
 
-        let score = heuristic(board); // Estimate how good the board looks after this move.
+            let score = board.score(); // Use the real score for faster move ordering.
 
-        board.undo_move(mv, player); // Undo the temporary move so the board returns to normal.
+            board.undo_move(mv, player); // Undo the temporary move so the board returns to normal
 
-        match player {
-            Player::X => -score, // Change: X wants high scores first, so negative score sorts high first.
-            Player::O => score,  // Change: O wants low scores first, so normal score sorts low first.
-        }
-    });
+            match player {
+                Player::X => -score, // X searches moves with higher scores first.
+                Player::O => score, // O searches moves with lower scores first.
+            }
+        });
+    }
     // set the best and first move:
     //let n = board.get_cells().len();
     // let center = (n/2,n/2);
@@ -133,13 +134,13 @@ fn score_line(a: &Cell, b: &Cell, c: &Cell) -> i32 {
     if x == 3 {
         return 1000        // strong win for X
     } else if x == 2 && empty == 1 {
-        return 80        // good opportunity for X
+        return 180        // good opportunity for X
     } else if x == 1 && empty == 2 {
         return 10        // weak opportunity
     } else if o == 3 {
         return -1000       // strong win for O
     } else if o == 2 && empty == 1 {
-        return -120      // threat from O
+        return -180      // threat from O
     } else if o == 1 && empty == 2 {
         return -10       // weak threat
     } else {
@@ -197,11 +198,43 @@ fn position_bonus(cells: &Vec<Vec<Cell>>) -> i32 {
     return bonus
 }
 
+// add a helper to score 4-cell patterns.
+fn score_four_line(a: &Cell, b: &Cell, c: &Cell, d: &Cell) -> i32 { 
+    let mut x = 0; // count how many X cells are in this 4-cell line.
+    let mut o = 0; // count how many O cells are in this 4-cell line.
+    let mut empty = 0; // count how many empty cells are in this 4-cell line.
+
+    for cell in [a, b, c, d] { // check each cell in the 4-cell line.
+        match cell { // update the correct counter based on the cell type.
+            Cell::X => x += 1, // found one X.
+            Cell::O => o += 1, // found one O.
+            Cell::Empty => empty += 1, //  found one empty space.
+            Cell::Wall => return 0, // walls block the line, so it has no value.
+        }
+    }
+
+    if x > 0 && o > 0 { // if both players are in the line, neither can use it cleanly.
+        return 0; // mixed lines are blocked, so give no score.
+    }
+
+    if x == 2 && empty == 2 { //  two Xs with two empty spaces can grow later.
+        return 90; //  reward X for a flexible future line.
+    } else if o == 2 && empty == 2 { // two Os with two empty spaces can grow later.
+        return -70; //  penalize because this is good for O.
+    } else if x == 3 && empty == 1 { //  three Xs in four cells may create overlapping triples.
+        return 400; // reward X for strong 4-cell potential.
+    } else if o == 3 && empty == 1 { // three Os in four cells may create overlapping triples.
+        return -300; // penalize because this is strong for O.
+    } else {
+        return 0; // other 4-cell patterns are not important enough to score.
+    }
+}
+
 fn heuristic(board: &Board) -> i32 {
     let cells = board.get_cells();              // get 2D board
     let n = cells.len();                        // board size (3 or 5)
 
-    let mut total_score: i32 = 0;             // accumulated score
+    let mut total_score: i32 = board.score() * 10000;            // accumulated score
     //let mut total_lines: i32 = 0;             // number of 3-cell segments checked
 
     // loop over every cell as a starting point
@@ -239,6 +272,42 @@ fn heuristic(board: &Board) -> i32 {
                 );
                 //total_lines += 1.0;
             }
+
+            if j + 3 < n { // Make sure a horizontal 4-cell line fits on the board.
+                total_score += score_four_line( // Add the value of this horizontal 4-cell pattern.
+                    &cells[i][j], // First cell in the horizontal 4-cell line.
+                    &cells[i][j + 1], // Second cell in the horizontal 4-cell line.
+                    &cells[i][j + 2], // Third cell in the horizontal 4-cell line.
+                    &cells[i][j + 3], // Fourth cell in the horizontal 4-cell line.
+                );
+            }
+
+            if i + 3 < n { // Make sure a vertical 4-cell line fits on the board.
+                total_score += score_four_line( // Add the value of this vertical 4-cell pattern.
+                    &cells[i][j], // First cell in the vertical 4-cell line.
+                    &cells[i + 1][j], // Second cell in the vertical 4-cell line.
+                    &cells[i + 2][j], // Third cell in the vertical 4-cell line.
+                    &cells[i + 3][j], // Fourth cell in the vertical 4-cell line.
+                );
+            }
+
+            if i + 3 < n && j + 3 < n { // Make sure a down-right diagonal 4-cell line fits.
+                total_score += score_four_line( // Add the value of this down-right diagonal pattern.
+                    &cells[i][j], // First cell in the down-right diagonal line.
+                    &cells[i + 1][j + 1], // Second cell in the down-right diagonal line.
+                    &cells[i + 2][j + 2], // Third cell in the down-right diagonal line.
+                    &cells[i + 3][j + 3], // Fourth cell in the down-right diagonal line.
+                );
+            }
+
+            if i + 3 < n && j >= 3 { // Make sure a down-left diagonal 4-cell line fits.
+                total_score += score_four_line( // Add the value of this down-left diagonal pattern.
+                    &cells[i][j], // First cell in the down-left diagonal line.
+                    &cells[i + 1][j - 1], // Second cell in the down-left diagonal line.
+                    &cells[i + 2][j - 2], // Third cell in the down-left diagonal line.
+                    &cells[i + 3][j - 3], // Fourth cell in the down-left diagonal line.
+                );
+            }
         }
     }
 
@@ -249,4 +318,6 @@ fn heuristic(board: &Board) -> i32 {
     return total_score;
     
     }
+
+
 
