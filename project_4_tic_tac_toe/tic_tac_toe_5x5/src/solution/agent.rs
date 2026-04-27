@@ -15,17 +15,19 @@ impl Agent for SolutionAgent {
         // let max_depth = 4; // set max depth
         let max_depth = if available_moves <= 9 { // check if board is 3x3 or 5x5 to determine best depth
             7
-        } else {
+        } 
+        else {
             4
         };
 
+       
         return minimax_helper(board, player, max_depth); // call helper function to do the solving
-
     }
 }
 
-fn minimax_helper(board: &mut Board, player: Player, depth: u32) -> (i32, usize, usize) { 
-    // new helper function that tracks depth 
+
+
+fn minimax_helper(board: &mut Board, player: Player, depth: u32) -> (i32, usize, usize) { // new helper function that tracks depth 
     if board.game_over() || depth == 0 { // this stops the game or when it naturally ends or when depth count hits 0
         let score: i32 = heuristic(board); // pass through heuristic to get score
         return (score, 0, 0); 
@@ -50,8 +52,6 @@ fn minimax_helper(board: &mut Board, player: Player, depth: u32) -> (i32, usize,
         
         board.apply_move(mv, player);
 
-    
-
         let (score, _x, _y) = 
         minimax_helper(board, player.flip(), depth - 1); // call helper function, also subtract 1 from depth
 
@@ -62,14 +62,12 @@ fn minimax_helper(board: &mut Board, player: Player, depth: u32) -> (i32, usize,
                 best_score = score;
                 best_move = mv;
                 }
-
             }
         Player::O => {
             if score < best_score {
                 best_score = score;
                 best_move = mv;
                 }
-            
             }
         }
         board.undo_move(mv, player);
@@ -101,20 +99,16 @@ fn score_line(a: &Cell, b: &Cell, c: &Cell) -> i32 {
     }
 
     // scoring (small values to keep total stable)
-    if x == 4 {
+    if x == 3 {
         return 1000        // strong win for X
     } else if x == 2 && empty == 1 {
-        return 80        // good opportunity for X
-    } else if x == 3 {
-        return 500
+        return 130        // good opportunity for X
     } else if x == 1 && empty == 2 {
         return 10        // weak opportunity
-    } else if o == 4 {
-        return -1000
     } else if o == 3 {
-        return -500       // strong win for O
+        return -1000       // strong win for O
     } else if o == 2 && empty == 1 {
-        return -90       // threat from O, slightly more important than we are x =2 and empty =1.
+        return -110       // threat from O
     } else if o == 1 && empty == 2 {
         return -10       // weak threat
     } else {
@@ -224,3 +218,5 @@ fn heuristic(board: &Board) -> i32 {
     return total_score;
     
     }
+
+
