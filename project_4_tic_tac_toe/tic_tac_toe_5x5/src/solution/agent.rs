@@ -234,7 +234,7 @@ fn heuristic(board: &Board) -> i32 {
     let cells = board.get_cells();              // get 2D board
     let n = cells.len();                        // board size (3 or 5)
 
-    let mut total_score: i32 = board.score() * 10000;            // accumulated score
+    let mut total_score: i32 = 0;            // accumulated score
     //let mut total_lines: i32 = 0;             // number of 3-cell segments checked
 
     // loop over every cell as a starting point
