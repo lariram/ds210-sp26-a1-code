@@ -6,7 +6,11 @@ use tic_tac_toe_stencil::board::Cell;
 // Your solution
 pub struct SolutionAgent {}
 
-pub const DEFAULT_WEIGHTS: [i32; 6] = [10000, -1070, 24, 495, -720, -3090]; // set default weights for machine learning
+pub const DEFAULT_WEIGHTS_X: [i32; 6] = [10000, 490, -993, 275, 1241, -1427]; // Put your best X numbers here
+pub const DEFAULT_WEIGHTS_O: [i32; 6] = [10000, 683, 1063, -44, -490, -835]; // Put your best O numbers here
+
+// training command to train as x: cargo run -p tic_tac_toe_5x5 --bin main -- --x solution --o test --layout 5
+// training command to train as o: cargo run -p tic_tac_toe_5x5 --bin main -- --x test --o solution --layout 5
 
 // Put your solution here.
 impl Agent for SolutionAgent {
@@ -25,8 +29,12 @@ impl Agent for SolutionAgent {
             4 // Change: early game has many choices, so keep depth smaller to avoid timeout.
         };
 
+        let weights = match player {
+            Player::X => &DEFAULT_WEIGHTS_X,
+            Player::O => &DEFAULT_WEIGHTS_O,
+        }; 
        
-        return minimax_helper(board, player, max_depth, i32::MIN, i32::MAX, &DEFAULT_WEIGHTS); // call helper function to do the solving, add default weights for machine learning
+        return minimax_helper(board, player, max_depth, i32::MIN, i32::MAX, weights); // call helper function to do the solving, add default weights for machine learning
     }
 }
 
@@ -317,58 +325,65 @@ fn heuristic(board: &Board, weights: &[i32; 6]) -> i32 {
 
 use rand::Rng;
 
-pub fn train_agent<L: tic_tac_toe_stencil::layout::Layout>(layout: L) {
-    println!("Starting Machine Learning Training...");
-    
-    let mut best_weights = DEFAULT_WEIGHTS.clone();
-    let mut rng = rand::thread_rng();
+pub fn train_agent<L: tic_tac_toe_stencil::layout::Layout>(layout: L, train_for: Player) {
+    let player_name = match train_for {
+        Player::X => "X",
+        Player::O => "O",
+    };
 
-    // 1. Build the board JUST ONCE outside the loop
+    println!("Starting Machine Learning Training for Player {}...", player_name);
+    
+    // 1. Automatically grab the correct starting weights
+    let mut best_weights = match train_for {
+        Player::X => DEFAULT_WEIGHTS_X.clone(),
+        Player::O => DEFAULT_WEIGHTS_O.clone(),
+    };
+    
+    let mut rng = rand::thread_rng();
     let mut board = Board::new(layout);
 
-    // Run 50 generations of learning
-    for generation in 0..10000 {
-        // Mutate: Copy the best weights and change one randomly
+    // Run 100 generations
+    for generation in 0..100 {
         let mut test_weights = best_weights.clone();
-        let mutate_index = rng.gen_range(1..6); 
-        test_weights[mutate_index] += rng.gen_range(-50..50);
+        let mutate_index = rng.gen_range(1..6);
+        test_weights[mutate_index] += rng.gen_range(-300..301);
 
         let mut turn = Player::X;
-        
-        // 2. Create a memory to track the moves we make
         let mut moves_made = Vec::new(); 
         
-        // Simulate the game
         while !board.game_over() && board.moves().len() > 0 {
-            let current_weights = match turn {
-                Player::X => &test_weights,
-                Player::O => &best_weights,
+            // 2. Automatically give the mutation to the player we are training
+            let current_weights = if turn == train_for {
+                &test_weights // The mutation plays for the target player
+            } else {
+                &best_weights // The baseline plays for the opponent
             };
             
             let (_score, x, y) = minimax_helper(&mut board, turn, 3, i32::MIN, i32::MAX, current_weights);
             
             board.apply_move((x, y), turn);
-            
-            // 3. Save the move to our memory so we can undo it later
             moves_made.push(((x, y), turn)); 
-            
             turn = turn.flip();
         }
 
-        // Evaluate: Did the mutation win?
-        if board.score() > 0 { 
-            println!("Gen {}: Mutation WIN! New best weights: {:?}", generation, test_weights);
+        // 3. Automatically use the correct win condition
+        let is_mutation_better = match train_for {
+            Player::X => board.score() >= 0, // X wants positive or 0
+            Player::O => board.score() <= 0, // O wants negative or 0
+        };
+
+        if is_mutation_better { 
+            println!("Gen {}: Mutation WIN for {}! New best weights: {:?}", generation, player_name, test_weights);
             best_weights = test_weights;
         } else {
             println!("Gen {}: Mutation failed.", generation);
         }
 
-        // 4. THE MAGIC TRICK: Undo every move in reverse order to clean the board!
         while let Some((mv, p)) = moves_made.pop() {
             board.undo_move(mv, p);
         }
     }
     
-    println!("Training Complete! Hardcode these weights into DEFAULT_WEIGHTS:");
+    println!("Training Complete! Hardcode these weights into DEFAULT_WEIGHTS_{}:", player_name);
     println!("{:?}", best_weights);
 }
