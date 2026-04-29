@@ -20,15 +20,15 @@ fn main() {
     let layout = args.get_layout();
 
     let train_for = match (x_agent, o_agent) {
-        (Agents::Solution, _) => Player::X, // If you typed --x solution, train X
-        (_, Agents::Solution) => Player::O, // If you typed --o solution, train O
+        (Agents::Solution, _) => Player::X, // if --x solution, train X
+        (_, Agents::Solution) => Player::O, // if --o solution, train O
         _ => Player::X, // Default fallback
     };
 
     // Pass the target player into the training function!
-    train_agent(layout, train_for);
+    // train_agent(layout, train_for);
 
-    /* 
+     
     let _ = match (x_agent, o_agent) {
         // First vs the world.
         (Agents::First, Agents::First) => game_loop::<_, FirstMoveAgent, FirstMoveAgent>(layout, TIME_LIMIT, false),
@@ -61,5 +61,5 @@ fn main() {
         (Agents::Test, Agents::Solution) => game_loop::<_, TestAgent, SolutionAgent>(layout, TIME_LIMIT, false),
         (Agents::Test, Agents::Test) => game_loop::<_, TestAgent, TestAgent>(layout, TIME_LIMIT, false),
     };
-    */
+    
 }

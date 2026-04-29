@@ -6,8 +6,8 @@ use tic_tac_toe_stencil::board::Cell;
 // Your solution
 pub struct SolutionAgent {}
 
-pub const DEFAULT_WEIGHTS_X: [i32; 6] = [10000, 490, -993, 275, 1241, -1427]; // Put your best X numbers here
-pub const DEFAULT_WEIGHTS_O: [i32; 6] = [10000, 683, 1063, -44, -490, -835]; // Put your best O numbers here
+pub const DEFAULT_WEIGHTS_X: [i32; 6] = [10000, 2910, -3472, 128, 4080, 1947]; // Put best X numbers here
+pub const DEFAULT_WEIGHTS_O: [i32; 6] = [10000, 683, 1063, 335, -490, -835]; // Put best O numbers here
 
 // training command to train as x: cargo run -p tic_tac_toe_5x5 --bin main -- --x solution --o test --layout 5
 // training command to train as o: cargo run -p tic_tac_toe_5x5 --bin main -- --x test --o solution --layout 5
@@ -343,7 +343,7 @@ pub fn train_agent<L: tic_tac_toe_stencil::layout::Layout>(layout: L, train_for:
     let mut board = Board::new(layout);
 
     // Run 100 generations
-    for generation in 0..100 {
+    for generation in 0..200 {
         let mut test_weights = best_weights.clone();
         let mutate_index = rng.gen_range(1..6);
         test_weights[mutate_index] += rng.gen_range(-300..301);
