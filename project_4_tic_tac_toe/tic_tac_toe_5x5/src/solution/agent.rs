@@ -6,7 +6,7 @@ use tic_tac_toe_stencil::board::Cell;
 // Your solution
 pub struct SolutionAgent {}
 
-pub const DEFAULT_WEIGHTS: [i32; 6] = [10000, 1089, 185, 63, 469, 187]; // set default weights for machine learning
+pub const DEFAULT_WEIGHTS: [i32; 6] = [10000, -1070, 24, 495, -720, -3090]; // set default weights for machine learning
 
 // Put your solution here.
 impl Agent for SolutionAgent {
@@ -327,11 +327,11 @@ pub fn train_agent<L: tic_tac_toe_stencil::layout::Layout>(layout: L) {
     let mut board = Board::new(layout);
 
     // Run 50 generations of learning
-    for generation in 0..50 {
+    for generation in 0..10000 {
         // Mutate: Copy the best weights and change one randomly
         let mut test_weights = best_weights.clone();
         let mutate_index = rng.gen_range(1..6); 
-        test_weights[mutate_index] += rng.gen_range(-100..100);
+        test_weights[mutate_index] += rng.gen_range(-50..50);
 
         let mut turn = Player::X;
         
