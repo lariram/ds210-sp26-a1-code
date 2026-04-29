@@ -5,7 +5,7 @@ use tic_tac_toe_stencil::player::Player;
 
 use crate::args::{Agents, Args};
 use tic_tac_toe_5x5::solution::agent::SolutionAgent;
-// use tic_tac_toe_5x5::solution::agent::train_agent;
+use tic_tac_toe_5x5::solution::agent::train_agent;
 mod args;
 
 // Time limit for solution to make a move
@@ -19,8 +19,16 @@ fn main() {
     let o_agent = args.get_agent(Player::O);
     let layout = args.get_layout();
 
-    // train_agent(layout);
+    let train_for = match (x_agent, o_agent) {
+        (Agents::Solution, _) => Player::X, // if --x solution, train X
+        (_, Agents::Solution) => Player::O, // if --o solution, train O
+        _ => Player::X, // fallback
+    };
 
+    // Pass the target player into the training function!
+    // train_agent(layout, train_for);
+
+     
     let _ = match (x_agent, o_agent) {
         // First vs the world.
         (Agents::First, Agents::First) => game_loop::<_, FirstMoveAgent, FirstMoveAgent>(layout, TIME_LIMIT, false),
@@ -53,4 +61,5 @@ fn main() {
         (Agents::Test, Agents::Solution) => game_loop::<_, TestAgent, SolutionAgent>(layout, TIME_LIMIT, false),
         (Agents::Test, Agents::Test) => game_loop::<_, TestAgent, TestAgent>(layout, TIME_LIMIT, false),
     };
+    
 }
