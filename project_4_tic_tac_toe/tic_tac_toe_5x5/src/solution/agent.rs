@@ -6,8 +6,8 @@ use tic_tac_toe_stencil::board::Cell;
 // Your solution
 pub struct SolutionAgent {}
 
-pub const DEFAULT_WEIGHTS_X: [i32; 6] = [10000, 2910, -3472, 128, 4080, 1947]; // Put best X numbers here
-pub const DEFAULT_WEIGHTS_O: [i32; 6] = [10000, 683, 1063, 335, -490, -835]; // Put best O numbers here
+pub const DEFAULT_WEIGHTS_X: [i32; 6] = [10000, 2910, -3472, 128, 4080, 1947]; // best X numbers
+pub const DEFAULT_WEIGHTS_O: [i32; 6] = [10000, 683, 1063, 335, -490, -835]; // best O numbers
 
 // training command to train as x: cargo run -p tic_tac_toe_5x5 --bin main -- --x solution --o test --layout 5
 // training command to train as o: cargo run -p tic_tac_toe_5x5 --bin main -- --x test --o solution --layout 5
@@ -73,7 +73,7 @@ fn minimax_helper(board: &mut Board, player: Player, depth: u32, mut alpha: i32,
         });
     }
     // set the best and first move:
-    //let n = board.get_cells().len();
+    // let n = board.get_cells().len();
     // let center = (n/2,n/2);
     let mut best_move = all_moves[0];
 

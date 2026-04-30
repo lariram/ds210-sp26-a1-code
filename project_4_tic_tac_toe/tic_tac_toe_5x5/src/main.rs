@@ -19,11 +19,13 @@ fn main() {
     let o_agent = args.get_agent(Player::O);
     let layout = args.get_layout();
 
+    /* 
     let train_for = match (x_agent, o_agent) {
         (Agents::Solution, _) => Player::X, // if --x solution, train X
         (_, Agents::Solution) => Player::O, // if --o solution, train O
         _ => Player::X, // Default fallback
     };
+    */
 
     // Pass the target player into the training function!
     // train_agent(layout, train_for);

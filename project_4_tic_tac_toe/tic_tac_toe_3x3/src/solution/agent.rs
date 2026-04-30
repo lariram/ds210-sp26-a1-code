@@ -14,19 +14,18 @@ impl Agent for SolutionAgent {
         // If you want to make a recursive call to this solution, use
         // `SolutionAgent::solve(...)`
 
-        // create the base code:
+        // create the base code [base case, i.e. if the game is over, this runs]:
         if board.game_over() {
             // generate the score of the board:
             let score = board.score();
-
             // output the score with random move:
-            return (score, 0, 0);
+            return (score, 0, 0); // 0,0 is like dummy coordinates because there is no next move
         }
 
         // Initialize "best" depending on whether we are maximizing or minimizing:
         let mut best_score = match player {
             Player::X => i32::MIN, // X wants to maximize, so it should start from minium
-            Player::O => i32::MAX, // O wants to minimize, so it should start from maximum.
+            Player::O => i32::MAX, // O wants to minimize, so it should start from maximum
         };
 
         // generate a vector containing all possible moves:
@@ -62,7 +61,7 @@ impl Agent for SolutionAgent {
 
                 // if the Player is O:
                 Player::O => {
-                    // if score is higher than the old best moves, replace it:
+                    // if score is lower than the old best moves, replace it:
                     if score < best_score {
                         best_score = score;
                         best_move = mv;
