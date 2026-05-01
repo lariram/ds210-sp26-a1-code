@@ -5,7 +5,7 @@ use tic_tac_toe_stencil::player::Player;
 
 use crate::args::{Agents, Args};
 use tic_tac_toe_5x5::solution::agent::SolutionAgent;
-use tic_tac_toe_5x5::solution::agent::train_agent;
+//use tic_tac_toe_5x5::solution::agent::train_agent;
 mod args;
 
 // Time limit for solution to make a move
