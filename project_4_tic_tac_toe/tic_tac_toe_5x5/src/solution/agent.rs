@@ -3,8 +3,10 @@ use tic_tac_toe_stencil::board::Board;
 use tic_tac_toe_stencil::player::Player;
 use tic_tac_toe_stencil::board::Cell;
 
-// Your solution solution.
+// Your solution
 pub struct SolutionAgent {}
+
+pub const DEFAULT_WEIGHTS: [i32; 6] = [10000, -1070, 24, 495, -720, -3090]; // set default weights for machine learning
 
 // Put your solution here.
 impl Agent for SolutionAgent {
@@ -24,18 +26,18 @@ impl Agent for SolutionAgent {
         };
 
        
-        return minimax_helper(board, player, max_depth, i32::MIN, i32::MAX); // call helper function to do the solving
+        return minimax_helper(board, player, max_depth, i32::MIN, i32::MAX, &DEFAULT_WEIGHTS); // call helper function to do the solving, add default weights for machine learning
     }
 }
 
 
-fn minimax_helper(board: &mut Board, player: Player, depth: u32, mut alpha: i32, mut beta: i32) -> (i32, usize, usize) { // new helper function that tracks depth 
+fn minimax_helper(board: &mut Board, player: Player, depth: u32, mut alpha: i32, mut beta: i32, weights: &[i32; 6]) -> (i32, usize, usize) { // new helper function that tracks depth 
     if board.game_over() {
         return (board.score() * 10000, 0, 0);
     }
 
     if depth == 0 {
-        return (heuristic(board), 0, 0);
+        return (heuristic(board, weights), 0, 0);
     }
 
     // keep original initialization code
@@ -52,7 +54,7 @@ fn minimax_helper(board: &mut Board, player: Player, depth: u32, mut alpha: i32,
         all_moves.sort_by_key(|&mv| {
             board.apply_move(mv, player); // Try this move temporarily.
 
-            let score = board.score(); // Use the real score for faster move ordering.
+            let score = heuristic(board, weights); // CHANGE: use weights + heuristic to score
 
             board.undo_move(mv, player); // Undo the temporary move so the board returns to normal
 
@@ -73,7 +75,7 @@ fn minimax_helper(board: &mut Board, player: Player, depth: u32, mut alpha: i32,
         board.apply_move(mv, player);
 
         let (score, _x, _y) = 
-        minimax_helper(board, player.flip(), depth - 1, alpha, beta); // call helper function, also subtract 1 from depth
+        minimax_helper(board, player.flip(), depth - 1, alpha, beta, weights); // call helper function, also subtract 1 from depth
 
         board.undo_move(mv, player); // Change: undo immediately so pruning cannot leave the board changed.
 
@@ -110,7 +112,7 @@ fn minimax_helper(board: &mut Board, player: Player, depth: u32, mut alpha: i32,
 }
 
 // A helper function for solving the Heuristic function:
-fn score_line(a: &Cell, b: &Cell, c: &Cell) -> i32 {
+fn score_line(a: &Cell, b: &Cell, c: &Cell, weights: &[i32; 6]) -> i32 {
     let mut x = 0;
     let mut o = 0;
     let mut empty = 0;
@@ -131,75 +133,17 @@ fn score_line(a: &Cell, b: &Cell, c: &Cell) -> i32 {
     }
 
     // scoring (small values to keep total stable)
-    if x == 3 {
-        return 1000        // strong win for X
-    } else if x == 2 && empty == 1 {
-        return 180        // good opportunity for X
-    } else if x == 1 && empty == 2 {
-        return 10        // weak opportunity
-    } else if o == 3 {
-        return -1000       // strong win for O
-    } else if o == 2 && empty == 1 {
-        return -180      // threat from O
-    } else if o == 1 && empty == 2 {
-        return -10       // weak threat
-    } else {
-        return 0        // empty or irrelevant
-    }
-}
-
-// This function gives a small bonus based on where pieces are placed on the board.
-// Idea: cells closer to the center are more valuable because they can form more lines.
-fn position_bonus(cells: &Vec<Vec<Cell>>) -> i32 {
-
-    // Get board size (3 or 5)
-    let n = cells.len();  
-
-    // Find the center index (for 5x5 → center = 2)
-    let center = (n / 2) as i32;  
-
-    // This will store the total bonus score
-    let mut bonus = 0;  
-
-    // Loop through every row
-    for i in 0..n {
-
-        // Loop through every column
-        for j in 0..n {
-
-            // Compute how far this cell is from the center
-            // Example: center (2,2), cell (0,0) → distance = 4
-            // abs() computes for absolute value
-            let distance_from_center =
-                (i as i32 - center).abs() + (j as i32 - center).abs();
-
-            // Convert distance into a score
-            // Closer to center → bigger value
-            // Farther → smaller value
-            // choose 6, because this is the maximum possible distance in 5x5
-            let value = 6 - distance_from_center;  
-
-            // Check what is inside the cell
-            match cells[i][j] {
-
-                // If it's X, add the value (good for X)
-                Cell::X => bonus += value,  
-
-                // If it's O, subtract the value (bad for X)
-                Cell::O => bonus -= value,  
-
-                // If it's empty or wall, ignore
-                _ => {}
-            }
-        }
-    }
-
-    // Return total positional bonus
-    return bonus
+    if x == 3 { return weights[1]; }
+    else if x == 2 && empty == 1 { return weights[2]; }
+    else if x == 1 && empty == 2 { return weights[3]; }
+    else if o == 3 { return -weights[1]; }
+    else if o == 2 && empty == 1 { return -weights[2]; }
+    else if o == 1 && empty == 2 { return -weights[3]; }
+    else { return 0; }
 }
 
 // add a helper to score 4-cell patterns.
-fn score_four_line(a: &Cell, b: &Cell, c: &Cell, d: &Cell) -> i32 { 
+fn score_four_line(a: &Cell, b: &Cell, c: &Cell, d: &Cell, weights: &[i32; 6]) -> i32 { 
     let mut x = 0; // count how many X cells are in this 4-cell line.
     let mut o = 0; // count how many O cells are in this 4-cell line.
     let mut empty = 0; // count how many empty cells are in this 4-cell line.
@@ -217,24 +161,18 @@ fn score_four_line(a: &Cell, b: &Cell, c: &Cell, d: &Cell) -> i32 {
         return 0; // mixed lines are blocked, so give no score.
     }
 
-    if x == 2 && empty == 2 { //  two Xs with two empty spaces can grow later.
-        return 90; //  reward X for a flexible future line.
-    } else if o == 2 && empty == 2 { // two Os with two empty spaces can grow later.
-        return -70; //  penalize because this is good for O.
-    } else if x == 3 && empty == 1 { //  three Xs in four cells may create overlapping triples.
-        return 400; // reward X for strong 4-cell potential.
-    } else if o == 3 && empty == 1 { // three Os in four cells may create overlapping triples.
-        return -300; // penalize because this is strong for O.
-    } else {
-        return 0; // other 4-cell patterns are not important enough to score.
-    }
+    if x == 3 && empty == 1 { return weights[4]; }
+    else if o == 3 && empty == 1 { return -weights[4]; }
+    else if x == 2 && empty == 2 { return weights[5]; }
+    else if o == 2 && empty == 2 { return -weights[5]; }
+    else { return 0; }
 }
 
-fn heuristic(board: &Board) -> i32 {
-    let cells = board.get_cells();              // get 2D board
+fn heuristic(board: &Board, weights: &[i32; 6]) -> i32 {
+    let cells = board.get_cells();      // get 2D board
     let n = cells.len();                        // board size (3 or 5)
 
-    let mut total_score: i32 = board.score();            // accumulated score
+    let mut total_score: i32 = board.score() * weights[0];            // accumulated score
     //let mut total_lines: i32 = 0;             // number of 3-cell segments checked
 
     // loop over every cell as a starting point
@@ -243,13 +181,13 @@ fn heuristic(board: &Board) -> i32 {
 
             // check horizontal segment (i, j) → (i, j+2)
             if j + 2 < n {
-                total_score += score_line(&cells[i][j], &cells[i][j + 1], &cells[i][j + 2]);
+                total_score += score_line(&cells[i][j], &cells[i][j + 1], &cells[i][j + 2], weights,);
                 //total_lines += 1.0;
             }
 
             // check vertical segment (i, j) → (i+2, j)
             if i + 2 < n {
-                total_score += score_line(&cells[i][j], &cells[i + 1][j], &cells[i + 2][j]);
+                total_score += score_line(&cells[i][j], &cells[i + 1][j], &cells[i + 2][j], weights,);
                 //total_lines += 1.0;
             }
 
@@ -259,6 +197,7 @@ fn heuristic(board: &Board) -> i32 {
                     &cells[i][j],
                     &cells[i + 1][j + 1],
                     &cells[i + 2][j + 2],
+                    weights,
                 );
                 //total_lines += 1.0;
             }
@@ -269,6 +208,7 @@ fn heuristic(board: &Board) -> i32 {
                     &cells[i][j],
                     &cells[i + 1][j - 1],
                     &cells[i + 2][j - 2],
+                    weights,
                 );
                 //total_lines += 1.0;
             }
@@ -279,6 +219,7 @@ fn heuristic(board: &Board) -> i32 {
                     &cells[i][j + 1], // Second cell in the horizontal 4-cell line.
                     &cells[i][j + 2], // Third cell in the horizontal 4-cell line.
                     &cells[i][j + 3], // Fourth cell in the horizontal 4-cell line.
+                    weights,
                 );
             }
 
@@ -288,6 +229,7 @@ fn heuristic(board: &Board) -> i32 {
                     &cells[i + 1][j], // Second cell in the vertical 4-cell line.
                     &cells[i + 2][j], // Third cell in the vertical 4-cell line.
                     &cells[i + 3][j], // Fourth cell in the vertical 4-cell line.
+                    weights,
                 );
             }
 
@@ -297,6 +239,7 @@ fn heuristic(board: &Board) -> i32 {
                     &cells[i + 1][j + 1], // Second cell in the down-right diagonal line.
                     &cells[i + 2][j + 2], // Third cell in the down-right diagonal line.
                     &cells[i + 3][j + 3], // Fourth cell in the down-right diagonal line.
+                    weights,
                 );
             }
 
@@ -306,6 +249,7 @@ fn heuristic(board: &Board) -> i32 {
                     &cells[i + 1][j - 1], // Second cell in the down-left diagonal line.
                     &cells[i + 2][j - 2], // Third cell in the down-left diagonal line.
                     &cells[i + 3][j - 3], // Fourth cell in the down-left diagonal line.
+                    weights,
                 );
             }
         }
@@ -314,7 +258,66 @@ fn heuristic(board: &Board) -> i32 {
     
     // Add a small positional bonus for pieces in flexible locations.
     // This rewards overlap potential without making the heuristic too slow.
-    total_score += position_bonus(cells); // CHANGE MADE HERE!
     return total_score;
     
     }
+
+
+
+use rand::Rng;
+
+pub fn train_agent<L: tic_tac_toe_stencil::layout::Layout>(layout: L) {
+    println!("Starting Machine Learning Training...");
+    
+    let mut best_weights = DEFAULT_WEIGHTS.clone();
+    let mut rng = rand::thread_rng();
+
+    // 1. Build the board JUST ONCE outside the loop
+    let mut board = Board::new(layout);
+
+    // Run 50 generations of learning
+    for generation in 0..10000 {
+        // Mutate: Copy the best weights and change one randomly
+        let mut test_weights = best_weights.clone();
+        let mutate_index = rng.gen_range(1..6); 
+        test_weights[mutate_index] += rng.gen_range(-50..50);
+
+        let mut turn = Player::X;
+        
+        // 2. Create a memory to track the moves we make
+        let mut moves_made = Vec::new(); 
+        
+        // Simulate the game
+        while !board.game_over() && board.moves().len() > 0 {
+            let current_weights = match turn {
+                Player::X => &test_weights,
+                Player::O => &best_weights,
+            };
+            
+            let (_score, x, y) = minimax_helper(&mut board, turn, 3, i32::MIN, i32::MAX, current_weights);
+            
+            board.apply_move((x, y), turn);
+            
+            // 3. Save the move to our memory so we can undo it later
+            moves_made.push(((x, y), turn)); 
+            
+            turn = turn.flip();
+        }
+
+        // Evaluate: Did the mutation win?
+        if board.score() > 0 { 
+            println!("Gen {}: Mutation WIN! New best weights: {:?}", generation, test_weights);
+            best_weights = test_weights;
+        } else {
+            println!("Gen {}: Mutation failed.", generation);
+        }
+
+        // 4. THE MAGIC TRICK: Undo every move in reverse order to clean the board!
+        while let Some((mv, p)) = moves_made.pop() {
+            board.undo_move(mv, p);
+        }
+    }
+    
+    println!("Training Complete! Hardcode these weights into DEFAULT_WEIGHTS:");
+    println!("{:?}", best_weights);
+}
